@@ -1,1 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación Real: Faja Transportadora de Cemento - Segunda Ley de Newton</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 5px solid #e74c3c;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header h2 {
+            font-size: 1.3em;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 0;
+        }
+
+        .simulation-section {
+            background: #1a1a1a;
+            padding: 25px;
+            position: relative;
+            min-height: 600px;
+            border-right: 3px solid #34495e;
+        }
+
+        #simulationCanvas {
+            background: linear-gradient(160deg, #2c3e50 0%, #3498db 100%);
+            border-radius: 15px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .control-panel {
+            background: #2c3e50;
+            padding: 25px;
+            color: white;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .panel-section {
+            background: #34495e;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .panel-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ecf0f1;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(52, 73, 94, 0.6);
+            border-radius: 8px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #7f8c8d;
+            border-radius: 4px;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .value-display {
+            background: #1abc9c;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        #startBtn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        #resetBtn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .data-display {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 6px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 4px;
+        }
+
+        .data-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .data-value {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .charts-section {
+            background: white;
+            padding: 25px;
+            border-top: 3px solid #bdc3c7;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .force-breakdown {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .force-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-top: 4px solid;
+        }
+
+        .force-1 { border-color: #e74c3c; }
+        .force-2 { border-color: #3498db; }
+        .force-3 { border-color: #f39c12; }
+
+        .force-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .force-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .percentage {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .motor-control {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .simulation-section {
+                border-right: none;
+                border-bottom: 3px solid #34495e;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏭 SIMULACIÓN REAL: FAJA TRANSPORTADORA DE CEMENTO</h1>
+            <h2>Aplicación de la Segunda Ley de Newton - Sistema de Transporte Industrial</h2>
+        </div>
+
+        <div class="main-content">
+            <!-- Sección de Simulación Visual -->
+            <div class="simulation-section">
+                <canvas id="simulationCanvas" width="900" height="500"></canvas>
+            </div>
+
+            <!-- Panel de Control -->
+            <div class="control-panel">
+                <div class="panel-section">
+                    <div class="panel-title">🎛️ CONTROLES DEL SISTEMA</div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Masa del Saco (kg)</span>
+                        </div>
+                        <input type="range" id="massSlider" min="10" max="100" value="25" step="5">
+                        <div class="value-display" id="massValue">25 kg</div>
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Ángulo de Inclinación (°)</span>
+                        </div>
+                        <input type="range" id="angleSlider" min="5" max="45" value="20" step="1">
+                        <div class="value-display" id="angleValue">20°</div>
+                    </div>
+
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Coeficiente de Fricción</span>
+                        </div>
+                        <input type="range" id="frictionSlider" min="0.1" max="0.8" value="0.35" step="0.05">
+                        <div class="value-display" id="frictionValue">0.35</div>
+                    </div>
+
+                    <!-- NUEVO: Control de Fuerza del Motor -->
+                    <div class="slider-container motor-control">
+                        <div class="slider-label">
+                            <span>⚡ Fuerza del Motor (N)</span>
+                        </div>
+                        <input type="range" id="motorForceSlider" min="50" max="500" value="174" step="10">
+                        <div class="value-display" id="motorForceValue">174 N</div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button id="startBtn">▶ INICIAR SIMULACIÓN</button>
+                        <button id="resetBtn">🔄 REINICIAR</button>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-title">📊 DATOS EN TIEMPO REAL</div>
+                    <div class="data-display">
+                        <div class="data-item">
+                            <span class="data-label">Tiempo:</span>
+                            <span class="data-value" id="timeValue">0.0 s</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Posición:</span>
+                            <span class="data-value" id="positionValue">0.0 m</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Velocidad:</span>
+                            <span class="data-value" id="velocityValue">0.0 m/s</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Altura:</span>
+                            <span class="data-value" id="heightValue">0.0 m</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Fuerza Motor:</span>
+                            <span class="data-value" id="forceValue">0.0 N</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Potencia:</span>
+                            <span class="data-value" id="powerValue">0.0 W</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="data-label">Aceleración Real:</span>
+                            <span class="data-value" id="realAccelerationValue">0.0 m/s²</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <div class="panel-title">⚖️ DISTRIBUCIÓN DE FUERZAS</div>
+                    <div class="force-breakdown">
+                        <div class="force-item force-1">
+                            <div class="force-label">Vencer Gravedad</div>
+                            <div class="force-value" id="gravityForce">0 N</div>
+                            <div class="percentage" id="gravityPercent">0%</div>
+                        </div>
+                        <div class="force-item force-2">
+                            <div class="force-label">Vencer Fricción</div>
+                            <div class="force-value" id="frictionForceValue">0 N</div>
+                            <div class="percentage" id="frictionPercent">0%</div>
+                        </div>
+                        <div class="force-item force-3">
+                            <div class="force-label">Aceleración Neto</div>
+                            <div class="force-value" id="accelerationForce">0 N</div>
+                            <div class="percentage" id="accelerationPercent">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Gráficos -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <div class="chart-title">📈 GRÁFICO DE MOVIMIENTO - Velocidad vs Tiempo</div>
+                <canvas id="motionChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FajaTransportadoraSimulacion {
+            constructor() {
+                this.canvas = document.getElementById('simulationCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.animationId = null;
+                
+                // Parámetros del sistema
+                this.masa = 25;
+                this.angulo = 20 * Math.PI / 180;
+                this.coeficienteFriccion = 0.35;
+                this.altura = 4;
+                this.longitud = 11.7;
+                this.gravedad = 9.81;
+                
+                // NUEVO: Control manual de la fuerza del motor
+                this.fuerzaMotorManual = 174;
+                this.modoManual = true; // true = manual, false = automático
+                
+                // Estado de la simulación
+                this.tiempo = 0;
+                this.posicion = 0;
+                this.velocidad = 0;
+                this.simulacionActiva = false;
+                this.textureOffset = 0;
+                
+                // Elementos de control
+                this.inicializarControles();
+                this.inicializarGraficos();
+                
+                // Dibujar estado inicial
+                this.dibujarEscena();
+            }
+            
+            inicializarControles() {
+                // Sliders
+                document.getElementById('massSlider').addEventListener('input', (e) => {
+                    this.masa = parseInt(e.target.value);
+                    document.getElementById('massValue').textContent = this.masa + ' kg';
+                    this.calcularFuerzas();
+                    this.actualizarSaco();
+                });
+                
+                document.getElementById('angleSlider').addEventListener('input', (e) => {
+                    const anguloGrados = parseInt(e.target.value);
+                    this.angulo = anguloGrados * Math.PI / 180;
+                    document.getElementById('angleValue').textContent = anguloGrados + '°';
+                    this.longitud = this.altura / Math.sin(this.angulo);
+                    this.calcularFuerzas();
+                });
+                
+                document.getElementById('frictionSlider').addEventListener('input', (e) => {
+                    this.coeficienteFriccion = parseFloat(e.target.value);
+                    document.getElementById('frictionValue').textContent = this.coeficienteFriccion.toFixed(2);
+                    this.calcularFuerzas();
+                });
+                
+                // NUEVO: Control manual de fuerza del motor
+                document.getElementById('motorForceSlider').addEventListener('input', (e) => {
+                    this.fuerzaMotorManual = parseInt(e.target.value);
+                    document.getElementById('motorForceValue').textContent = this.fuerzaMotorManual + ' N';
+                    this.modoManual = true;
+                    this.calcularAceleracionReal();
+                });
+                
+                // Botones
+                document.getElementById('startBtn').addEventListener('click', () => this.iniciarSimulacion());
+                document.getElementById('resetBtn').addEventListener('click', () => this.reiniciarSimulacion());
+            }
+            
+            calcularFuerzas() {
+                // Cálculos según la Segunda Ley de Newton
+                this.peso = this.masa * this.gravedad;
+                this.w_x = this.peso * Math.sin(this.angulo);
+                this.w_y = this.peso * Math.cos(this.angulo);
+                this.fuerzaNormal = this.w_y;
+                this.fuerzaFriccion = this.coeficienteFriccion * this.fuerzaNormal;
+                
+                if (!this.modoManual) {
+                    // Modo automático - calcular fuerza necesaria
+                    this.aceleracionDeseada = 0.4;
+                    this.fuerzaAceleracion = this.masa * this.aceleracionDeseada;
+                    this.fuerzaMotor = this.fuerzaAceleracion + this.w_x + this.fuerzaFriccion;
+                } else {
+                    // Modo manual - usar fuerza definida por el usuario
+                    this.fuerzaMotor = this.fuerzaMotorManual;
+                    this.calcularAceleracionReal();
+                }
+                
+                // Actualizar displays
+                this.actualizarDisplays();
+            }
+            
+            calcularAceleracionReal() {
+                // Calcular aceleración real basada en la fuerza del motor
+                const fuerzaNeta = this.fuerzaMotor - this.w_x - this.fuerzaFriccion;
+                this.aceleracionReal = fuerzaNeta / this.masa;
+                
+                // Asegurar que la aceleración no sea negativa (el motor no puede frenar)
+                if (this.aceleracionReal < 0) {
+                    this.aceleracionReal = 0;
+                    // Mostrar advertencia visual
+                    document.getElementById('realAccelerationValue').style.color = '#e74c3c';
+                } else {
+                    document.getElementById('realAccelerationValue').style.color = '#e74c3c';
+                }
+            }
+            
+            actualizarDisplays() {
+                document.getElementById('forceValue').textContent = this.fuerzaMotor.toFixed(1) + ' N';
+                document.getElementById('gravityForce').textContent = this.w_x.toFixed(1) + ' N';
+                document.getElementById('frictionForceValue').textContent = this.fuerzaFriccion.toFixed(1) + ' N';
+                
+                if (this.modoManual) {
+                    const fuerzaAceleracion = this.masa * this.aceleracionReal;
+                    document.getElementById('accelerationForce').textContent = fuerzaAceleracion.toFixed(1) + ' N';
+                    document.getElementById('realAccelerationValue').textContent = this.aceleracionReal.toFixed(2) + ' m/s²';
+                } else {
+                    document.getElementById('accelerationForce').textContent = this.fuerzaAceleracion.toFixed(1) + ' N';
+                    document.getElementById('realAccelerationValue').textContent = '0.40 m/s²';
+                }
+                
+                // Calcular porcentajes
+                const total = this.fuerzaMotor;
+                const gravPercent = (this.w_x / total * 100).toFixed(1);
+                const fricPercent = (this.fuerzaFriccion / total * 100).toFixed(1);
+                
+                let acelPercent;
+                if (this.modoManual) {
+                    acelPercent = ((this.masa * this.aceleracionReal) / total * 100).toFixed(1);
+                } else {
+                    acelPercent = (this.fuerzaAceleracion / total * 100).toFixed(1);
+                }
+                
+                document.getElementById('gravityPercent').textContent = gravPercent + '%';
+                document.getElementById('frictionPercent').textContent = fricPercent + '%';
+                document.getElementById('accelerationPercent').textContent = acelPercent + '%';
+            }
+            
+            actualizarSaco() {
+                // Actualizar el tamaño visual del saco basado en la masa
+                this.sacoAncho = 40 + (this.masa / 25) * 20; // 40-80px
+                this.sacoAlto = 30 + (this.masa / 25) * 15;  // 30-60px
+            }
+            
+            iniciarSimulacion() {
+                if (!this.simulacionActiva) {
+                    this.simulacionActiva = true;
+                    this.bucleAnimacion();
+                }
+            }
+            
+            reiniciarSimulacion() {
+                this.simulacionActiva = false;
+                this.tiempo = 0;
+                this.posicion = 0;
+                this.velocidad = 0;
+                this.textureOffset = 0;
+                this.calcularFuerzas();
+                this.dibujarEscena();
+                this.actualizarDatosTiempoReal();
+                
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+            
+            bucleAnimacion() {
+                if (!this.simulacionActiva) return;
+                
+                const dt = 0.016; // ≈ 60 FPS
+                
+                // Actualizar física
+                this.tiempo += dt;
+                
+                // Actualizar offset de textura para movimiento de la faja
+                this.textureOffset += this.velocidad * 50 * dt;
+                if (this.textureOffset > 100) this.textureOffset = 0;
+                
+                if (this.posicion < this.longitud) {
+                    // Usar aceleración real en modo manual
+                    const aceleracion = this.modoManual ? this.aceleracionReal : 0.4;
+                    
+                    if (this.velocidad < 2.0) { // Velocidad operación máxima
+                        this.velocidad += aceleracion * dt;
+                        if (this.velocidad > 2.0) this.velocidad = 2.0;
+                    }
+                    this.posicion += this.velocidad * dt;
+                } else {
+                    this.velocidad = 0;
+                }
+                
+                // Actualizar visualización
+                this.dibujarEscena();
+                this.actualizarDatosTiempoReal();
+                this.actualizarGraficos();
+                
+                this.animationId = requestAnimationFrame(() => this.bucleAnimacion());
+            }
+            
+            dibujarEscena() {
+                const ctx = this.ctx;
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                // Limpiar canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Dibujar fondo
+                const gradient = ctx.createLinearGradient(0, 0, 0, height);
+                gradient.addColorStop(0, '#2c3e50');
+                gradient.addColorStop(1, '#3498db');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Parámetros de dibujo
+                const baseY = height * 0.7;
+                const escalaLongitud = width * 0.8 / this.longitud;
+                const xInicio = width * 0.1;
+                const yInicio = baseY;
+                const xFin = xInicio + this.longitud * Math.cos(this.angulo) * escalaLongitud;
+                const yFin = yInicio - this.longitud * Math.sin(this.angulo) * escalaLongitud;
+                
+                // Dibujar estructura de soporte
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillRect(xInicio - 20, yInicio, 40, 50);
+                
+                // DIBUJAR FAJA TRANSPORTADORA CON MOVIMIENTO
+                this.dibujarFajaMovil(xInicio, yInicio, xFin, yFin);
+                
+                // Dibujar rodillos (girando!)
+                this.dibujarRodillos(xInicio, yInicio, xFin, yFin);
+                
+                // Dibujar plataforma superior
+                ctx.fillStyle = '#27ae60';
+                ctx.fillRect(xFin - 60, yFin - 10, 120, 20);
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillRect(xFin - 60, yFin - 10, 120, 8);
+                
+                // Dibujar saco de cemento (tamaño variable según masa)
+                this.dibujarSaco(xInicio, yInicio, xFin, yFin, escalaLongitud);
+                
+                // Dibujar fuerzas (cuando la simulación está activa)
+                if (this.simulacionActiva && this.posicion < this.longitud) {
+                    this.dibujarFuerzas();
+                }
+                
+                // Información de la simulación
+                this.dibujarInfoPanel();
+            }
+            
+            dibujarFajaMovil(xInicio, yInicio, xFin, yFin) {
+                const ctx = this.ctx;
+                
+                // Base de la faja (fija)
+                ctx.strokeStyle = '#34495e';
+                ctx.lineWidth = 12;
+                ctx.beginPath();
+                ctx.moveTo(xInicio, yInicio);
+                ctx.lineTo(xFin, yFin);
+                ctx.stroke();
+                
+                // Textura móvil de la faja
+                if (this.simulacionActiva) {
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([15, 15]);
+                    ctx.lineDashOffset = -this.textureOffset;
+                    ctx.beginPath();
+                    ctx.moveTo(xInicio, yInicio);
+                    ctx.lineTo(xFin, yFin);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // Efecto de banda en movimiento (líneas transversales)
+                if (this.simulacionActiva) {
+                    ctx.strokeStyle = '#f39c12';
+                    ctx.lineWidth = 2;
+                    const numLineas = 15;
+                    for (let i = 0; i < numLineas; i++) {
+                        const t = (i / numLineas + this.textureOffset / 200) % 1;
+                        const x = xInicio + (xFin - xInicio) * t;
+                        const y = yInicio + (yFin - yInicio) * t;
+                        
+                        const perpX = -Math.sin(this.angulo) * 20;
+                        const perpY = -Math.cos(this.angulo) * 20;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x - perpX, y - perpY);
+                        ctx.lineTo(x + perpX, y + perpY);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            dibujarRodillos(xInicio, yInicio, xFin, yFin) {
+                const ctx = this.ctx;
+                const numRodillos = 8;
+                
+                for (let i = 0; i < numRodillos; i++) {
+                    const t = i / (numRodillos - 1);
+                    const x = xInicio + (xFin - xInicio) * t;
+                    const y = yInicio + (yFin - yInicio) * t;
+                    
+                    // Eje del rodillo
+                    ctx.fillStyle = '#7f8c8d';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Rodillo girando
+                    if (this.simulacionActiva) {
+                        const anguloRotacion = this.textureOffset * 0.1;
+                        ctx.strokeStyle = '#bdc3c7';
+                        ctx.lineWidth = 8;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 10, anguloRotacion, anguloRotacion + Math.PI);
+                        ctx.stroke();
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 10, anguloRotacion + Math.PI, anguloRotacion + Math.PI * 2);
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = '#bdc3c7';
+                        ctx.beginPath();
+                        ctx.arc(x, y, 10, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+            
+            dibujarSaco(xInicio, yInicio, xFin, yFin, escalaLongitud) {
+                const ctx = this.ctx;
+                
+                // Calcular posición del saco
+                const sacoX = xInicio + this.posicion * Math.cos(this.angulo) * escalaLongitud;
+                const sacoY = yInicio - this.posicion * Math.sin(this.angulo) * escalaLongitud;
+                
+                // Tamaño del saco basado en la masa (actualizado dinámicamente)
+                const sacoAncho = 40 + (this.masa / 25) * 20;
+                const sacoAlto = 30 + (this.masa / 25) * 15;
+                
+                // Cuerpo del saco
+                ctx.fillStyle = '#bdc3c7';
+                ctx.fillRect(sacoX - sacoAncho/2, sacoY - sacoAlto/2, sacoAncho, sacoAlto);
+                
+                // Detalles del saco
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillRect(sacoX - sacoAncho/2, sacoY - sacoAlto/2, sacoAncho, 6);
+                ctx.fillRect(sacoX - sacoAncho/2, sacoY + sacoAlto/2 - 6, sacoAncho, 6);
+                
+                // Texto "CEMENTO" y peso
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('CEMENTO', sacoX, sacoY - 5);
+                ctx.font = '10px Arial';
+                ctx.fillText(this.masa + ' kg', sacoX, sacoY + 10);
+            }
+            
+            dibujarFuerzas() {
+                const ctx = this.ctx;
+                const escalaFuerza = 0.2;
+                
+                // Calcular posición del saco para las fuerzas
+                const xInicio = this.canvas.width * 0.1;
+                const yInicio = this.canvas.height * 0.7;
+                const escalaLongitud = this.canvas.width * 0.8 / this.longitud;
+                const sacoX = xInicio + this.posicion * Math.cos(this.angulo) * escalaLongitud;
+                const sacoY = yInicio - this.posicion * Math.sin(this.angulo) * escalaLongitud;
+                
+                // Fuerza del motor (azul) - paralela al plano, hacia arriba
+                ctx.strokeStyle = '#3498db';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(sacoX, sacoY);
+                ctx.lineTo(
+                    sacoX + Math.cos(this.angulo) * this.fuerzaMotor * escalaFuerza,
+                    sacoY - Math.sin(this.angulo) * this.fuerzaMotor * escalaFuerza
+                );
+                ctx.stroke();
+                
+                // Fuerza de gravedad (rojo) - vertical hacia abajo
+                ctx.strokeStyle = '#e74c3c';
+                ctx.beginPath();
+                ctx.moveTo(sacoX, sacoY);
+                ctx.lineTo(sacoX, sacoY + this.peso * escalaFuerza * 0.3);
+                ctx.stroke();
+                
+                // Fuerza de fricción (naranja) - paralela al plano, hacia abajo
+                ctx.strokeStyle = '#f39c12';
+                ctx.beginPath();
+                ctx.moveTo(sacoX, sacoY);
+                ctx.lineTo(
+                    sacoX - Math.cos(this.angulo) * this.fuerzaFriccion * escalaFuerza,
+                    sacoY + Math.sin(this.angulo) * this.fuerzaFriccion * escalaFuerza
+                );
+                ctx.stroke();
+                
+                // Leyenda de fuerzas
+                this.dibujarLeyendaFuerzas();
+            }
+            
+            dibujarLeyendaFuerzas() {
+                const ctx = this.ctx;
+                const leyendaY = this.canvas.height - 100;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(10, leyendaY, 180, 80);
+                
+                ctx.fillStyle = '#3498db';
+                ctx.fillRect(20, leyendaY + 15, 15, 3);
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '11px Arial';
+                ctx.fillText('Motor: ' + this.fuerzaMotor.toFixed(0) + ' N', 40, leyendaY + 20);
+                
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(20, leyendaY + 35, 15, 3);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText('Gravedad: ' + this.w_x.toFixed(0) + ' N', 40, leyendaY + 40);
+                
+                ctx.fillStyle = '#f39c12';
+                ctx.fillRect(20, leyendaY + 55, 15, 3);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillText('Fricción: ' + this.fuerzaFriccion.toFixed(0) + ' N', 40, leyendaY + 60);
+            }
+            
+            dibujarInfoPanel() {
+                const ctx = this.ctx;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(10, 10, 280, 120);
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('FAJA TRANSPORTADORA - SEGUNDA LEY DE NEWTON', 20, 30);
+                ctx.font = '12px Arial';
+                ctx.fillText(`Longitud: ${this.longitud.toFixed(1)} m`, 20, 50);
+                ctx.fillText(`Altura: ${this.altura} m`, 20, 70);
+                ctx.fillText(`Ángulo: ${(this.angulo * 180/Math.PI).toFixed(1)}°`, 20, 90);
+                ctx.fillText(`Masa: ${this.masa} kg`, 20, 110);
+                
+                // Indicador de estado y modo
+                ctx.fillStyle = this.simulacionActiva ? '#27ae60' : '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(this.canvas.width - 30, 30, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '10px Arial';
+                const estado = this.simulacionActiva ? 'EN MOVIMIENTO' : 'DETENIDO';
+                const modo = this.modoManual ? 'MODO MANUAL' : 'MODO AUTOMÁTICO';
+                ctx.fillText(estado, this.canvas.width - 120, 25);
+                ctx.fillText(modo, this.canvas.width - 120, 40);
+            }
+            
+            actualizarDatosTiempoReal() {
+                document.getElementById('timeValue').textContent = this.tiempo.toFixed(1) + ' s';
+                document.getElementById('positionValue').textContent = this.posicion.toFixed(1) + ' m';
+                document.getElementById('velocityValue').textContent = this.velocidad.toFixed(1) + ' m/s';
+                document.getElementById('heightValue').textContent = (this.posicion * Math.sin(this.angulo)).toFixed(1) + ' m';
+                
+                const potencia = this.fuerzaMotor * this.velocidad;
+                document.getElementById('powerValue').textContent = potencia.toFixed(1) + ' W';
+            }
+            
+            inicializarGraficos() {
+                // Inicializar gráfico de movimiento
+                const motionCtx = document.getElementById('motionChart').getContext('2d');
+                this.motionChart = new Chart(motionCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Velocidad (m/s)',
+                            data: [],
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Posición (m)',
+                            data: [],
+                            borderColor: '#e74c3c',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Tiempo (s)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Velocidad (m/s)'
+                                },
+                                max: 2.5
+                            },
+                            y1: {
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Posición (m)'
+                                },
+                                max: 12,
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            actualizarGraficos() {
+                if (this.motionChart && this.tiempo > 0) {
+                    const labels = this.motionChart.data.labels;
+                    const velocidadData = this.motionChart.data.datasets[0].data;
+                    const posicionData = this.motionChart.data.datasets[1].data;
+                    
+                    labels.push(this.tiempo.toFixed(1));
+                    velocidadData.push(this.velocidad);
+                    posicionData.push(this.posicion);
+                    
+                    // Mantener solo los últimos 50 puntos
+                    if (labels.length > 50) {
+                        labels.shift();
+                        velocidadData.shift();
+                        posicionData.shift();
+                    }
+                    
+                    this.motionChart.update('none');
+                }
+            }
+        }
+        
+        // Inicializar la simulación cuando se carga la página
+        window.addEventListener('load', () => {
+            const simulacion = new FajaTransportadoraSimulacion();
+            simulacion.calcularFuerzas();
+            simulacion.actualizarSaco();
+        });
+    </script>
+</body>
+</html>
