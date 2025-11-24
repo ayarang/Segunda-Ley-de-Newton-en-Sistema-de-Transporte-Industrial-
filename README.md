@@ -1,0 +1,1 @@
+# Segunda-Ley-de-Newton-en-Sistema-de-Transporte-Industrial-
