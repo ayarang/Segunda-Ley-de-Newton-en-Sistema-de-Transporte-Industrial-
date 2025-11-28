@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación Real: Faja Transportadora de Cemento - Segunda Ley de Newton</title>
+    <title>Simulación Avanzada: Faja Transportadora de Cemento - Segunda Ley de Newton</title>
     <style>
         * {
             margin: 0;
@@ -169,7 +169,7 @@
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow:  ️0 5px 15px rgba(0,0,0,0.3);
         }
 
         .data-display {
@@ -252,7 +252,7 @@
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
             margin-top: 15px;
         }
@@ -283,6 +283,42 @@
             margin-left: 5px;
         }
 
+        .energy-section {
+            margin-top: 20px;
+        }
+
+        .energy-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .energy-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .energy-title {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .energy-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .energy-unit {
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -292,13 +328,17 @@
                 border-right: none;
                 border-bottom: 3px solid #34495e;
             }
+            
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏭 SIMULACIÓN REAL: FAJA TRANSPORTADORA DE CEMENTO</h1>
+            <h1>🏭 SIMULACIÓN AVANZADA: FAJA TRANSPORTADORA DE CEMENTO</h1>
             <h2>Aplicación de la Segunda Ley de Newton - Sistema de Transporte Industrial</h2>
         </div>
 
@@ -406,10 +446,48 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="panel-section">
+                    <div class="panel-title">🔋 ENERGÍA Y TRABAJO</div>
+                    <div class="energy-section">
+                        <div class="energy-grid">
+                            <div class="energy-card">
+                                <div class="energy-title">Energía Cinética</div>
+                                <div class="energy-value" id="kineticEnergy">0.0</div>
+                                <div class="energy-unit">J</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Energía Potencial</div>
+                                <div class="energy-value" id="potentialEnergy">0.0</div>
+                                <div class="energy-unit">J</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Trabajo Motor</div>
+                                <div class="energy-value" id="motorWork">0.0</div>
+                                <div class="energy-unit">J</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Trabajo Fricción</div>
+                                <div class="energy-value" id="frictionWork">0.0</div>
+                                <div class="energy-unit">J</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Energía Mecánica</div>
+                                <div class="energy-value" id="mechanicalEnergy">0.0</div>
+                                <div class="energy-unit">J</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Eficiencia</div>
+                                <div class="energy-value" id="efficiency">0.0</div>
+                                <div class="energy-unit">%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Sección de Información del Sistema (reemplaza los gráficos) -->
+        <!-- Sección de Información del Sistema -->
         <div class="system-info">
             <div class="panel-title" style="color: #2c3e50; justify-content: center;">📋 RESUMEN DEL SISTEMA</div>
             <div class="info-grid">
@@ -466,6 +544,14 @@
                 this.velocidad = 0;
                 this.simulacionActiva = false;
                 this.textureOffset = 0;
+                
+                // Variables de energía y trabajo
+                this.energiaCinetica = 0;
+                this.energiaPotencial = 0;
+                this.trabajoMotor = 0;
+                this.trabajoFriccion = 0;
+                this.energiaMecanica = 0;
+                this.eficiencia = 0;
                 
                 // Elementos de control
                 this.inicializarControles();
@@ -547,6 +633,40 @@
                 }
             }
             
+            calcularEnergiaYTrabajo() {
+                // Energía cinética = 1/2 * m * v^2
+                this.energiaCinetica = 0.5 * this.masa * this.velocidad * this.velocidad;
+                
+                // Energía potencial = m * g * h
+                const alturaActual = this.posicion * Math.sin(this.angulo);
+                this.energiaPotencial = this.masa * this.gravedad * alturaActual;
+                
+                // Trabajo del motor = F * d
+                this.trabajoMotor = this.fuerzaMotor * this.posicion;
+                
+                // Trabajo de fricción = F_friccion * d
+                this.trabajoFriccion = this.fuerzaFriccion * this.posicion;
+                
+                // Energía mecánica total = E_cinética + E_potencial
+                this.energiaMecanica = this.energiaCinetica + this.energiaPotencial;
+                
+                // Eficiencia = (Energía útil / Energía total) * 100
+                if (this.trabajoMotor > 0) {
+                    this.eficiencia = (this.energiaMecanica / this.trabajoMotor) * 100;
+                    if (this.eficiencia > 100) this.eficiencia = 100;
+                } else {
+                    this.eficiencia = 0;
+                }
+                
+                // Actualizar displays de energía
+                document.getElementById('kineticEnergy').textContent = this.energiaCinetica.toFixed(1);
+                document.getElementById('potentialEnergy').textContent = this.energiaPotencial.toFixed(1);
+                document.getElementById('motorWork').textContent = this.trabajoMotor.toFixed(1);
+                document.getElementById('frictionWork').textContent = this.trabajoFriccion.toFixed(1);
+                document.getElementById('mechanicalEnergy').textContent = this.energiaMecanica.toFixed(1);
+                document.getElementById('efficiency').textContent = this.eficiencia.toFixed(1);
+            }
+            
             actualizarDisplays() {
                 document.getElementById('forceValue').textContent = this.fuerzaMotor.toFixed(1) + ' N';
                 document.getElementById('gravityForce').textContent = this.w_x.toFixed(1) + ' N';
@@ -597,7 +717,14 @@
                 this.posicion = 0;
                 this.velocidad = 0;
                 this.textureOffset = 0;
+                this.energiaCinetica = 0;
+                this.energiaPotencial = 0;
+                this.trabajoMotor = 0;
+                this.trabajoFriccion = 0;
+                this.energiaMecanica = 0;
+                this.eficiencia = 0;
                 this.calcularFuerzas();
+                this.calcularEnergiaYTrabajo();
                 this.dibujarEscena();
                 this.actualizarDatosTiempoReal();
                 
@@ -630,6 +757,9 @@
                 } else {
                     this.velocidad = 0;
                 }
+                
+                // Calcular energía y trabajo
+                this.calcularEnergiaYTrabajo();
                 
                 // Actualizar visualización
                 this.dibujarEscena();
@@ -687,6 +817,9 @@
                 
                 // Información de la simulación
                 this.dibujarInfoPanel();
+                
+                // Dibujar indicadores de energía
+                this.dibujarIndicadoresEnergia();
             }
             
             dibujarFajaMovil(xInicio, yInicio, xFin, yFin) {
@@ -864,6 +997,47 @@
                 ctx.fillRect(20, leyendaY + 55, 15, 3);
                 ctx.fillStyle = '#2c3e50';
                 ctx.fillText('Fricción: ' + this.fuerzaFriccion.toFixed(0) + ' N', 40, leyendaY + 60);
+            }
+            
+            dibujarIndicadoresEnergia() {
+                const ctx = this.ctx;
+                const panelX = this.canvas.width - 200;
+                const panelY = 150;
+                
+                // Panel de energía
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(panelX, panelY, 190, 120);
+                
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('ENERGÍA Y TRABAJO', panelX + 10, panelY + 20);
+                
+                ctx.font = '11px Arial';
+                ctx.fillText(`Cinética: ${this.energiaCinetica.toFixed(1)} J`, panelX + 10, panelY + 40);
+                ctx.fillText(`Potencial: ${this.energiaPotencial.toFixed(1)} J`, panelX + 10, panelY + 60);
+                ctx.fillText(`Trabajo Motor: ${this.trabajoMotor.toFixed(1)} J`, panelX + 10, panelY + 80);
+                ctx.fillText(`Eficiencia: ${this.eficiencia.toFixed(1)}%`, panelX + 10, panelY + 100);
+                
+                // Indicador visual de energía cinética (barra)
+                const barWidth = 150;
+                const barHeight = 8;
+                const barX = panelX + 20;
+                const barY = panelY + 115;
+                
+                // Fondo de la barra
+                ctx.fillStyle = '#bdc3c7';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+                
+                // Energía cinética (proporcional a v^2)
+                const maxEnergia = 0.5 * this.masa * 4; // v_max = 2 m/s
+                const energiaRelativa = this.energiaCinetica / maxEnergia;
+                const barFillWidth = barWidth * energiaRelativa;
+                
+                // Color de la barra (verde a rojo según la energía)
+                const hue = 120 - (energiaRelativa * 120); // 120 (verde) a 0 (rojo)
+                ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+                ctx.fillRect(barX, barY, barFillWidth, barHeight);
             }
             
             dibujarInfoPanel() {
