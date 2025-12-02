@@ -382,8 +382,8 @@
                         <div class="slider-label">
                             <span>⚡ Fuerza del Motor (N)</span>
                         </div>
-                        <input type="range" id="motorForceSlider" min="50" max="500" value="174" step="10">
-                        <div class="value-display" id="motorForceValue">174 N</div>
+                        <input type="range" id="motorForceSlider" min="50" max="500" value="200" step="10">
+                        <div class="value-display" id="motorForceValue">200 N</div>
                     </div>
 
                     <!-- Control de Velocidad Máxima -->
@@ -391,8 +391,8 @@
                         <div class="slider-label">
                             <span>Velocidad Máxima (m/s)</span>
                         </div>
-                        <input type="range" id="maxSpeedSlider" min="0.1" max="2.0" value="1.2" step="0.1">
-                        <div class="value-display" id="maxSpeedValue">1.2 m/s</div>
+                        <input type="range" id="maxSpeedSlider" min="0.2" max="2.0" value="1.25" step="0.1">
+                        <div class="value-display" id="maxSpeedValue">2.5 m/s</div>
                     </div>
 
                     <div class="control-buttons">
@@ -434,7 +434,7 @@
                         </div>
                         <div class="data-item">
                             <span class="data-label">Tiempo Estimado:</span>
-                            <span class="data-value" id="estimatedTime">0.0 s</span>
+                            <span class="data-value" id="estimatedTime">5.2 s</span>
                         </div>
                     </div>
                 </div>
@@ -514,19 +514,19 @@
                 </div>
                 <div class="info-card">
                     <div class="info-title">Velocidad Operación</div>
-                    <div class="info-value">1.2<span class="info-unit">m/s</span></div>
+                    <div class="info-value">2.5<span class="info-unit">m/s</span></div>
                 </div>
                 <div class="info-card">
                     <div class="info-title">Tiempo de Ascenso</div>
-                    <div class="info-value">9.75<span class="info-unit">s</span></div>
+                    <div class="info-value">5.2<span class="info-unit">s</span></div>
                 </div>
                 <div class="info-card">
                     <div class="info-title">Potencia Teórica</div>
-                    <div class="info-value">208.8<span class="info-unit">W</span></div>
+                    <div class="info-value">500<span class="info-unit">W</span></div>
                 </div>
                 <div class="info-card">
                     <div class="info-title">Potencia Real</div>
-                    <div class="info-value">245.4<span class="info-unit">W</span></div>
+                    <div class="info-value">625<span class="info-unit">W</span></div>
                 </div>
             </div>
         </div>
@@ -548,11 +548,14 @@
                 this.gravedad = 9.81;
                 
                 // Control manual de la fuerza del motor
-                this.fuerzaMotorManual = 174;
+                this.fuerzaMotorManual = 200;
                 this.modoManual = true;
                 
-                // Velocidad máxima realista para faja transportadora
-                this.velocidadMaxima = 1.2; // m/s - velocidad más realista
+                // Velocidad máxima realista para faja transportadora (AUMENTADA)
+                this.velocidadMaxima = 2.5; // m/s - velocidad más realista para faja industrial
+                
+                // Aceleración máxima (AUMENTADA)
+                this.aceleracionMaxima = 1.0; // m/s² - más realista
                 
                 // Estado de la simulación
                 this.tiempo = 0;
@@ -569,11 +572,17 @@
                 this.energiaMecanica = 0;
                 this.eficiencia = 0;
                 
+                // Tiempo estimado
+                this.tiempoEstimado = 5.2;
+                
                 // Elementos de control
                 this.inicializarControles();
                 
                 // Dibujar estado inicial
                 this.dibujarEscena();
+                
+                // Calcular fuerzas iniciales
+                this.calcularFuerzas();
             }
             
             inicializarControles() {
@@ -591,12 +600,14 @@
                     document.getElementById('angleValue').textContent = anguloGrados + '°';
                     this.longitud = this.altura / Math.sin(this.angulo);
                     this.calcularFuerzas();
+                    this.calcularTiempoEstimado();
                 });
                 
                 document.getElementById('frictionSlider').addEventListener('input', (e) => {
                     this.coeficienteFriccion = parseFloat(e.target.value);
                     document.getElementById('frictionValue').textContent = this.coeficienteFriccion.toFixed(2);
                     this.calcularFuerzas();
+                    this.calcularTiempoEstimado();
                 });
                 
                 // Control manual de fuerza del motor
@@ -604,14 +615,18 @@
                     this.fuerzaMotorManual = parseInt(e.target.value);
                     document.getElementById('motorForceValue').textContent = this.fuerzaMotorManual + ' N';
                     this.modoManual = true;
-                    this.calcularAceleracionReal();
+                    this.calcularFuerzas();
+                    this.calcularTiempoEstimado();
                 });
                 
                 // Control de velocidad máxima
                 document.getElementById('maxSpeedSlider').addEventListener('input', (e) => {
-                    this.velocidadMaxima = parseFloat(e.target.value);
+                    // Multiplicar por 2 para obtener rango de 0.4 a 4.0 m/s
+                    const sliderValue = parseFloat(e.target.value);
+                    this.velocidadMaxima = sliderValue * 2;
                     document.getElementById('maxSpeedValue').textContent = this.velocidadMaxima.toFixed(1) + ' m/s';
                     this.calcularFuerzas();
+                    this.calcularTiempoEstimado();
                 });
                 
                 // Botones
@@ -629,7 +644,7 @@
                 
                 if (!this.modoManual) {
                     // Modo automático - calcular fuerza necesaria
-                    this.aceleracionDeseada = 0.2; // Aceleración más suave
+                    this.aceleracionDeseada = 0.5; // Aceleración más realista
                     this.fuerzaAceleracion = this.masa * this.aceleracionDeseada;
                     this.fuerzaMotor = this.fuerzaAceleracion + this.w_x + this.fuerzaFriccion;
                 } else {
@@ -647,9 +662,9 @@
                 const fuerzaNeta = this.fuerzaMotor - this.w_x - this.fuerzaFriccion;
                 this.aceleracionReal = fuerzaNeta / this.masa;
                 
-                // Limitar aceleración máxima para mayor realismo
-                if (this.aceleracionReal > 0.5) {
-                    this.aceleracionReal = 0.5;
+                // Limitar aceleración máxima (aumentada para mayor realismo)
+                if (this.aceleracionReal > this.aceleracionMaxima) {
+                    this.aceleracionReal = this.aceleracionMaxima;
                 }
                 
                 // Asegurar que la aceleración no sea negativa (el motor no puede frenar)
@@ -657,8 +672,42 @@
                     this.aceleracionReal = 0;
                     document.getElementById('realAccelerationValue').style.color = '#e74c3c';
                 } else {
-                    document.getElementById('realAccelerationValue').style.color = '#e74c3c';
+                    document.getElementById('realAccelerationValue').style.color = '#27ae60';
                 }
+            }
+            
+            calcularTiempoEstimado() {
+                // Calcular tiempo considerando aceleración y velocidad máxima
+                
+                if (this.aceleracionReal > 0) {
+                    // 1. Tiempo para alcanzar velocidad máxima
+                    const tiempoAceleracion = this.velocidadMaxima / this.aceleracionReal;
+                    
+                    // 2. Distancia durante aceleración
+                    const distanciaAceleracion = 0.5 * this.aceleracionReal * tiempoAceleracion * tiempoAceleracion;
+                    
+                    if (distanciaAceleracion >= this.longitud) {
+                        // Caso: nunca alcanza velocidad máxima
+                        this.tiempoEstimado = Math.sqrt(2 * this.longitud / this.aceleracionReal);
+                    } else {
+                        // 3. Distancia restante a velocidad constante
+                        const distanciaRestante = this.longitud - distanciaAceleracion;
+                        const tiempoVelocidadConstante = distanciaRestante / this.velocidadMaxima;
+                        
+                        // 4. Tiempo total
+                        this.tiempoEstimado = tiempoAceleracion + tiempoVelocidadConstante;
+                    }
+                } else {
+                    // Sin aceleración, usar cálculo simple
+                    this.tiempoEstimado = this.longitud / (this.velocidadMaxima > 0 ? this.velocidadMaxima : 1);
+                }
+                
+                // Asegurar tiempo mínimo razonable
+                if (this.tiempoEstimado < 3) this.tiempoEstimado = 3;
+                if (this.tiempoEstimado > 15) this.tiempoEstimado = 15;
+                
+                // Actualizar display
+                document.getElementById('estimatedTime').textContent = this.tiempoEstimado.toFixed(1) + ' s';
             }
             
             calcularEnergiaYTrabajo() {
@@ -706,7 +755,7 @@
                     document.getElementById('realAccelerationValue').textContent = this.aceleracionReal.toFixed(2) + ' m/s²';
                 } else {
                     document.getElementById('accelerationForce').textContent = this.fuerzaAceleracion.toFixed(1) + ' N';
-                    document.getElementById('realAccelerationValue').textContent = '0.20 m/s²';
+                    document.getElementById('realAccelerationValue').textContent = '0.50 m/s²';
                 }
                 
                 // Calcular porcentajes
@@ -724,10 +773,6 @@
                 document.getElementById('gravityPercent').textContent = gravPercent + '%';
                 document.getElementById('frictionPercent').textContent = fricPercent + '%';
                 document.getElementById('accelerationPercent').textContent = acelPercent + '%';
-                
-                // Actualizar tiempo estimado
-                const tiempoEstimado = this.longitud / this.velocidadMaxima;
-                document.getElementById('estimatedTime').textContent = tiempoEstimado.toFixed(1) + ' s';
             }
             
             actualizarSaco() {
@@ -756,6 +801,7 @@
                 this.energiaMecanica = 0;
                 this.eficiencia = 0;
                 this.calcularFuerzas();
+                this.calcularTiempoEstimado();
                 this.calcularEnergiaYTrabajo();
                 this.dibujarEscena();
                 this.actualizarDatosTiempoReal();
@@ -773,24 +819,33 @@
                 // Actualizar física
                 this.tiempo += dt;
                 
-                // Actualizar offset de textura para movimiento de la faja
-                this.textureOffset += this.velocidad * 30 * dt; // Reducido para movimiento más realista
+                // Actualizar offset de textura para movimiento de la faja (AUMENTADO)
+                this.textureOffset += this.velocidad * 50 * dt;
                 if (this.textureOffset > 100) this.textureOffset = 0;
                 
                 if (this.posicion < this.longitud) {
                     // Usar aceleración real en modo manual
-                    const aceleracion = this.modoManual ? this.aceleracionReal : 0.2;
+                    const aceleracion = this.modoManual ? this.aceleracionReal : 0.5;
                     
-                    // Aceleración más suave y realista
+                    // Aceleración hasta velocidad máxima
                     if (this.velocidad < this.velocidadMaxima) {
                         this.velocidad += aceleracion * dt;
                         if (this.velocidad > this.velocidadMaxima) this.velocidad = this.velocidadMaxima;
                     }
                     this.posicion += this.velocidad * dt;
+                    
+                    // Calcular tiempo restante en tiempo real
+                    if (this.velocidad > 0) {
+                        const distanciaRestante = this.longitud - this.posicion;
+                        const tiempoRestante = distanciaRestante / this.velocidad;
+                        const tiempoTotalEstimado = this.tiempo + tiempoRestante;
+                        document.getElementById('estimatedTime').textContent = tiempoTotalEstimado.toFixed(1) + ' s';
+                    }
                 } else {
                     // Llegó al final - desaceleración suave
                     this.velocidad *= 0.95;
                     if (this.velocidad < 0.01) this.velocidad = 0;
+                    this.posicion = this.longitud; // Limitar posición máxima
                 }
                 
                 // Calcular energía y trabajo
@@ -917,9 +972,9 @@
                     ctx.arc(x, y, 15, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    // Rodillo girando (más lento para mayor realismo)
+                    // Rodillo girando
                     if (this.simulacionActiva) {
-                        const anguloRotacion = this.textureOffset * 0.05; // Reducido para rotación más lenta
+                        const anguloRotacion = this.textureOffset * 0.1;
                         ctx.strokeStyle = '#bdc3c7';
                         ctx.lineWidth = 8;
                         ctx.beginPath();
@@ -969,7 +1024,7 @@
             
             dibujarFuerzas() {
                 const ctx = this.ctx;
-                const escalaFuerza = 0.2;
+                const escalaFuerza = 0.15; // Reducida para mejor visualización
                 
                 // Calcular posición del saco para las fuerzas
                 const xInicio = this.canvas.width * 0.1;
@@ -1067,7 +1122,7 @@
                 // Energía cinética (proporcional a v^2)
                 const maxEnergia = 0.5 * this.masa * this.velocidadMaxima * this.velocidadMaxima;
                 const energiaRelativa = this.energiaCinetica / maxEnergia;
-                const barFillWidth = barWidth * energiaRelativa;
+                const barFillWidth = barWidth * Math.min(energiaRelativa, 1);
                 
                 // Color de la barra (verde a rojo según la energía)
                 const hue = 120 - (energiaRelativa * 120); // 120 (verde) a 0 (rojo)
@@ -1118,8 +1173,6 @@
         // Inicializar la simulación cuando se carga la página
         window.addEventListener('load', () => {
             const simulacion = new FajaTransportadoraSimulacion();
-            simulacion.calcularFuerzas();
-            simulacion.actualizarSaco();
         });
     </script>
 </body>
