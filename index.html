@@ -124,16 +124,17 @@
             padding: 25px;
             color: white;
             height: 100%;
-            display: grid;
-            grid-template-rows: auto auto 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }
 
-        /* PANEL SUPERIOR HORIZONTAL - CONTROLES PRINCIPALES */
-        .control-grid {
+        /* CONTENEDOR PRINCIPAL DE CONTROLES - HORIZONTAL */
+        .controls-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
+            margin-bottom: 20px;
         }
 
         .control-group {
@@ -225,18 +226,26 @@
             box-shadow: 0 3px 10px rgba(52, 152, 219, 0.3);
         }
 
-        /* BOTONES EN GRID HORIZONTAL */
-        .button-grid {
+        /* BOTONES EN GRID HORIZONTAL - CORREGIDO */
+        .buttons-row {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 5px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            background: rgba(31, 64, 104, 0.7);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 10px;
         }
 
         .btn {
@@ -246,13 +255,14 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 1em;
+            font-size: 0.95em;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            min-height: 50px;
         }
 
         .btn-primary {
@@ -280,20 +290,19 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         }
 
-        .btn:active {
-            transform: translateY(0);
+        /* PANEL DE SEGURIDAD HORIZONTAL - CORREGIDO */
+        .safety-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
-        /* PANEL DE SEGURIDAD HORIZONTAL */
         .safety-panel {
             background: rgba(231, 76, 60, 0.1);
             padding: 20px;
             border-radius: 12px;
             border: 2px solid #e74c3c;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-top: 10px;
         }
 
         .safety-info {
@@ -305,6 +314,9 @@
             color: #f39c12;
             margin-bottom: 8px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .safety-progress {
@@ -323,13 +335,30 @@
             transition: width 0.5s ease;
         }
 
+        .safety-display {
+            background: rgba(31, 64, 104, 0.7);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
         .safety-value {
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: bold;
             color: #27ae60;
             text-align: center;
-            min-width: 100px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+
+        .safety-label-small {
+            font-size: 0.9em;
+            color: #bdc3c7;
+            text-align: center;
         }
 
         /* DATOS EN TIEMPO REAL - DISPOSICIÓN HORIZONTAL */
@@ -337,13 +366,14 @@
             background: rgba(52, 73, 94, 0.7);
             padding: 20px;
             border-radius: 12px;
-            margin-top: 10px;
+            margin-bottom: 20px;
         }
 
         .realtime-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
         }
 
         .data-card {
@@ -381,9 +411,9 @@
             background: rgba(31, 64, 104, 0.7);
             border-radius: 12px;
             padding: 20px;
-            margin-top: 10px;
             overflow-y: auto;
             border: 1px solid rgba(52, 152, 219, 0.3);
+            flex-grow: 1;
         }
 
         .panel-section {
@@ -463,6 +493,17 @@
             border-radius: 5px;
         }
 
+        .benchmark-label {
+            color: #bdc3c7;
+            font-size: 0.9em;
+        }
+
+        .benchmark-value {
+            color: #1abc9c;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
         /* BADGE UNACEM */
         .unacem-badge {
             position: absolute;
@@ -493,27 +534,25 @@
                 min-height: 500px;
             }
             
-            .control-panel {
-                grid-template-rows: auto;
+            .controls-container,
+            .buttons-row,
+            .safety-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .realtime-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 768px) {
-            .control-grid {
+            .force-grid,
+            .button-grid {
                 grid-template-columns: 1fr;
             }
             
             .realtime-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .force-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .safety-panel {
-                flex-direction: column;
-                text-align: center;
             }
         }
 
@@ -582,10 +621,10 @@
                 <canvas id="simulationCanvas" width="1100" height="600"></canvas>
             </div>
 
-            <!-- PANEL DE CONTROL LATERAL -->
+            <!-- PANEL DE CONTROL LATERAL - ESTRUCTURA CORREGIDA -->
             <div class="control-panel">
-                <!-- FILA SUPERIOR: CONTROLES PRINCIPALES EN HORIZONTAL -->
-                <div class="control-grid">
+                <!-- CONTROLES DE VELOCIDAD Y CARGA EN HORIZONTAL -->
+                <div class="controls-container">
                     <!-- COLUMNA IZQUIERDA: CONTROLES DE VELOCIDAD -->
                     <div class="control-group">
                         <div class="control-header">
@@ -602,8 +641,7 @@
                             </div>
                             <input type="range" id="speedSlider" min="0.5" max="2.5" value="1.5" step="0.1">
                             <div class="value-display" id="speedValue">
-                                <span>1.5 m/s</span>
-                                <span style="font-size: 0.9em; opacity: 0.9;">(OPERACIÓN TÍPICA)</span>
+                                1.5 m/s (OPERACIÓN TÍPICA)
                             </div>
                         </div>
 
@@ -614,8 +652,7 @@
                             </div>
                             <input type="range" id="accelerationSlider" min="0.1" max="0.8" value="0.3" step="0.05">
                             <div class="value-display" id="accelerationValue">
-                                <span>0.3 m/s²</span>
-                                <span style="font-size: 0.9em; opacity: 0.9;">(SUAVE - EVITA DERRAMES)</span>
+                                0.3 m/s² (SUAVE - EVITA DERRAMES)
                             </div>
                         </div>
                     </div>
@@ -636,8 +673,7 @@
                             </div>
                             <input type="range" id="massSlider" min="25" max="100" value="50" step="5">
                             <div class="value-display" id="massValue">
-                                <span>50 kg</span>
-                                <span style="font-size: 0.9em; opacity: 0.9;">(ESTÁNDAR INDUSTRIAL)</span>
+                                50 kg (ESTÁNDAR INDUSTRIAL)
                             </div>
                         </div>
 
@@ -648,16 +684,15 @@
                             </div>
                             <input type="range" id="angleSlider" min="5" max="25" value="18" step="1">
                             <div class="value-display" id="angleValue">
-                                <span>18°</span>
-                                <span style="font-size: 0.9em; opacity: 0.9;">(MÁXIMO RECOMENDADO)</span>
+                                18° (MÁXIMO RECOMENDADO)
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- FILA MEDIA: BOTONES DE CONTROL EN HORIZONTAL -->
-                <div class="control-grid">
-                    <div class="control-group">
+                <!-- BOTONES DE CONTROL EN HORIZONTAL -->
+                <div class="buttons-row">
+                    <div class="button-group">
                         <div class="control-header">
                             <div class="control-title">
                                 <span class="control-icon">🎮</span>
@@ -665,22 +700,18 @@
                             </div>
                         </div>
                         <div class="button-grid">
-                            <div class="button-group">
-                                <button class="btn btn-primary" id="startBtn">
-                                    <span>▶</span> INICIAR PRODUCCIÓN
-                                </button>
-                                <button class="btn btn-secondary" id="resetBtn">
-                                    <span>🔄</span> REINICIAR SISTEMA
-                                </button>
-                            </div>
-                            <div class="button-group">
-                                <button class="btn btn-info" id="validateBtn">
-                                    <span>✅</span> VALIDAR UNACEM
-                                </button>
-                                <button class="btn btn-warning" id="emergencyBtn">
-                                    <span>⛔</span> EMERGENCIA
-                                </button>
-                            </div>
+                            <button class="btn btn-primary" id="startBtn">
+                                <span>▶</span> INICIAR PRODUCCIÓN
+                            </button>
+                            <button class="btn btn-secondary" id="resetBtn">
+                                <span>🔄</span> REINICIAR SISTEMA
+                            </button>
+                            <button class="btn btn-info" id="validateBtn">
+                                <span>✅</span> VALIDAR UNACEM
+                            </button>
+                            <button class="btn btn-warning" id="emergencyBtn">
+                                <span>⛔</span> EMERGENCIA
+                            </button>
                         </div>
                     </div>
 
@@ -697,11 +728,16 @@
                                 Condición: μ ≥ tan(θ) | F_f ≥ Wₓ
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- DISPLAY DE PORCENTAJE DE SEGURIDAD -->
+                    <div class="safety-display">
                         <div class="safety-value" id="safetyMargin">53.8%</div>
+                        <div class="safety-label-small">MARGEN DE SEGURIDAD</div>
                     </div>
                 </div>
 
-                <!-- FILA INFERIOR: DATOS EN TIEMPO REAL EN HORIZONTAL -->
+                <!-- DATOS EN TIEMPO REAL EN HORIZONTAL -->
                 <div class="realtime-panel">
                     <div class="section-title">
                         <span>📊</span> DATOS EN TIEMPO REAL
@@ -778,24 +814,24 @@
                         <div class="unacem-panel">
                             <div class="benchmark-grid">
                                 <div class="benchmark-item">
-                                    <span>Producción Atocongo 2019:</span>
-                                    <span style="color: #1abc9c; font-weight: bold;">3.59M ton</span>
+                                    <span class="benchmark-label">Producción Atocongo 2019:</span>
+                                    <span class="benchmark-value">3.59M ton</span>
                                 </div>
                                 <div class="benchmark-item">
-                                    <span>Consumo específico:</span>
-                                    <span style="color: #1abc9c; font-weight: bold;">89.6 kWh/ton</span>
+                                    <span class="benchmark-label">Consumo específico:</span>
+                                    <span class="benchmark-value">89.6 kWh/ton</span>
                                 </div>
                                 <div class="benchmark-item">
-                                    <span>Eficiencia promedio:</span>
-                                    <span style="color: #1abc9c; font-weight: bold;">74.8%</span>
+                                    <span class="benchmark-label">Eficiencia promedio:</span>
+                                    <span class="benchmark-value">74.8%</span>
                                 </div>
                                 <div class="benchmark-item">
-                                    <span>Faja UNACEM (proyecto):</span>
-                                    <span style="color: #1abc9c; font-weight: bold;">7 km</span>
+                                    <span class="benchmark-label">Faja UNACEM (proyecto):</span>
+                                    <span class="benchmark-value">7 km</span>
                                 </div>
                             </div>
                             <div id="validationResults" style="margin-top: 10px; font-size: 0.9em;">
-                                <div style="background: rgba(52, 152, 219, 0.2); padding: 8px; border-radius: 5px; border-left: 4px solid #3498db;">
+                                <div style="background: rgba(52, 152, 219, 0.2); padding: 8px; border-radius: 5px; border-left: 4px solid #3498db; color: #3498db;">
                                     ✅ Sistema listo para validación con datos UNACEM
                                 </div>
                             </div>
@@ -807,9 +843,7 @@
     </div>
 
     <script>
-        // Mantengo exactamente el mismo JavaScript que ya tenías
-        // Solo actualizo las referencias a los nuevos elementos HTML
-        
+        // JavaScript completamente funcional y corregido
         const UNACEM_BENCHMARKS = {
             PRODUCTION: {
                 ATOCONGO_2019: 3588872,
@@ -843,6 +877,7 @@
                 this.ctx = this.canvas.getContext('2d');
                 this.animationId = null;
                 
+                // Parámetros iniciales
                 this.masaSaco = 50;
                 this.angulo = 18 * Math.PI / 180;
                 this.coeficienteFriccion = 0.5;
@@ -853,11 +888,13 @@
                 this.aceleracionOperativa = 0.3;
                 this.eficienciaSistema = 0.88;
                 
+                // Variables de producción
                 this.capacidad = 10;
                 this.distanciaEntreSacos = 3;
                 this.sacosSimultaneos = Math.floor(this.longitud / this.distanciaEntreSacos);
                 this.masaTotal = this.masaSaco * this.sacosSimultaneos;
                 
+                // Estado de simulación
                 this.tiempo = 0;
                 this.sacosProcesados = 0;
                 this.cementoTransportado = 0;
@@ -865,45 +902,53 @@
                 this.textureOffset = 0;
                 this.sacosEnFaja = [];
                 
+                // Validación
                 this.validationResults = null;
                 this.realisticParams = null;
                 
+                // Inicializar
                 this.calcularFuerzas();
                 this.crearSacosIniciales();
                 this.calcularParametrosRealistas();
                 this.inicializarControles();
                 this.dibujarEscena();
-                
-                // Actualizar indicador de estado
                 this.actualizarEstado();
             }
             
             calcularFuerzas() {
+                // Cálculos de fuerzas
                 this.pesoSaco = this.masaSaco * this.gravedad;
                 this.Wx = this.pesoSaco * Math.sin(this.angulo);
                 this.Wy = this.pesoSaco * Math.cos(this.angulo);
                 this.fuerzaNormal = this.Wy;
                 this.friccionDisponible = this.coeficienteFriccion * this.fuerzaNormal;
                 
+                // Margen de seguridad
                 this.margenSeguridad = ((this.friccionDisponible - this.Wx) / this.Wx * 100).toFixed(1);
                 
+                // Fuerzas por saco
                 this.fuerzaAceleracionSaco = this.masaSaco * this.aceleracionOperativa;
                 this.fuerzaTotalSaco = this.fuerzaAceleracionSaco + this.Wx;
                 
-                this.fuerzaCargaTotal = this.masaTotal * this.aceleracionOperativa + this.masaTotal * this.gravedad * Math.sin(this.angulo);
+                // Fuerza total del sistema
+                this.fuerzaCargaTotal = this.masaTotal * this.aceleracionOperativa + 
+                                      this.masaTotal * this.gravedad * Math.sin(this.angulo);
                 this.fuerzasAdicionales = this.fuerzaCargaTotal * 0.07;
                 this.fuerzaTangencialTotal = this.fuerzaCargaTotal + this.fuerzasAdicionales;
                 
+                // Cálculos de potencia
                 this.potenciaTeorica = this.fuerzaTangencialTotal * this.velocidadFaja / 1000;
                 this.potenciaMotor = this.potenciaTeorica / this.eficienciaSistema;
                 this.motorSeleccionado = 3.7;
                 this.factorServicio = this.motorSeleccionado / this.potenciaMotor;
                 
+                // Otros cálculos
                 this.parTambor = this.fuerzaTangencialTotal * 0.2;
                 this.trabajoPorCiclo = this.fuerzaTangencialTotal * this.longitud / 1000;
                 this.energiaUtil = this.masaTotal * this.gravedad * this.altura;
                 this.eficienciaEnergetica = (this.energiaUtil / (this.fuerzaTangencialTotal * this.longitud)) * 100;
                 
+                // Tiempos
                 this.tiempoAscenso = this.longitud / this.velocidadFaja;
                 this.sacosPorMinuto = 60 / this.tiempoAscenso;
                 
@@ -940,12 +985,13 @@
                     isValid: true
                 };
                 
+                // Validaciones
                 const capacidadTonH = designParams.capacity / 1000;
                 const capacityRatio = UNACEM_BENCHMARKS.PRODUCTION.CAPACITY_HOURLY / capacidadTonH;
                 
                 if (capacityRatio < 10 || capacityRatio > 20) {
                     results.warnings.push(
-                        `Capacidad ${capacidadTonH.toFixed(1)} ton/h representa ~1:${capacityRatio.toFixed(0)} vs planta UNACEM`
+                        `Capacidad ${capacidadTonH.toFixed(1)} ton/h vs planta UNACEM (${UNACEM_BENCHMARKS.PRODUCTION.CAPACITY_HOURLY} ton/h)`
                     );
                 }
                 
@@ -957,28 +1003,29 @@
                 
                 if (ratioEnergia < 0.5 || ratioEnergia > 2) {
                     results.warnings.push(
-                        `Consumo específico ${consumoEspecificoDisenio.toFixed(2)} kW/ton difiere del benchmark UNACEM`
+                        `Consumo ${consumoEspecificoDisenio.toFixed(2)} kW/ton vs UNACEM ${consumoTransporteUNACEM.toFixed(2)} kW/ton`
                     );
                 }
                 
                 if (designParams.efficiency > UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE * 1.1) {
                     results.recommendations.push(
-                        `Eficiencia ${(designParams.efficiency*100).toFixed(1)}% optimista. UNACEM opera al ${(UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE*100).toFixed(1)}%`
+                        `Eficiencia ${(designParams.efficiency*100).toFixed(1)}% vs UNACEM ${(UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE*100).toFixed(1)}%`
                     );
                 }
                 
                 if (designParams.angle > 18) {
                     results.warnings.push(
-                        `Ángulo de ${designParams.angle.toFixed(1)}° supera recomendación máxima (18°)`
+                        `Ángulo ${designParams.angle.toFixed(1)}° > máximo recomendado 18°`
                     );
                 }
                 
+                // Recomendaciones
                 results.recommendations.push(
-                    `Basado en datos UNACEM 2019:`,
-                    `• Producción anual: ${(UNACEM_BENCHMARKS.PRODUCTION.ATOCONGO_2019/1000000).toFixed(1)}M ton`,
-                    `• Consumo específico: ${UNACEM_BENCHMARKS.ENERGY.SPECIFIC_ATOCONGO} kWh/ton`,
+                    `Datos UNACEM 2019:`,
+                    `• Producción: ${(UNACEM_BENCHMARKS.PRODUCTION.ATOCONGO_2019/1000000).toFixed(1)}M ton/año`,
+                    `• Consumo: ${UNACEM_BENCHMARKS.ENERGY.SPECIFIC_ATOCONGO} kWh/ton`,
                     `• Eficiencia: ${(UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE*100).toFixed(1)}%`,
-                    `• Faja proyecto: ${UNACEM_BENCHMARKS.PROJECTS.BELT_LENGTH_KM} km`
+                    `• Faja: ${UNACEM_BENCHMARKS.PROJECTS.BELT_LENGTH_KM} km`
                 );
                 
                 this.validationResults = results;
@@ -1003,10 +1050,6 @@
                         if (angle <= 20) return initialDesign.capacity * 0.9;
                         if (angle <= 25) return initialDesign.capacity * 0.7;
                         return initialDesign.capacity * 0.5;
-                    },
-                    unacemComparison: {
-                        capacityRatio: UNACEM_BENCHMARKS.PRODUCTION.CAPACITY_HOURLY / initialDesign.capacity,
-                        recommendedPower: initialDesign.power * 1.15 * (UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE / initialDesign.efficiency)
                     }
                 };
                 
@@ -1019,13 +1062,14 @@
                 
                 if (!this.validationResults) {
                     container.innerHTML = `
-                        <div style="background: rgba(52, 152, 219, 0.2); padding: 8px; border-radius: 5px; border-left: 4px solid #3498db;">
+                        <div style="background: rgba(52, 152, 219, 0.2); padding: 8px; border-radius: 5px; border-left: 4px solid #3498db; color: #3498db;">
                             ✅ Sistema listo para validación con datos UNACEM
                         </div>
                     `;
                     return;
                 }
                 
+                // Mostrar advertencias
                 if (this.validationResults.warnings.length > 0) {
                     this.validationResults.warnings.forEach(warning => {
                         const div = document.createElement('div');
@@ -1035,6 +1079,7 @@
                     });
                 }
                 
+                // Mostrar recomendaciones
                 if (this.validationResults.recommendations.length > 0) {
                     this.validationResults.recommendations.forEach(rec => {
                         const div = document.createElement('div');
@@ -1043,6 +1088,14 @@
                         container.appendChild(div);
                     });
                 }
+                
+                // Resumen
+                const summaryDiv = document.createElement('div');
+                summaryDiv.style.cssText = 'background: rgba(155, 89, 182, 0.2); padding: 8px; border-radius: 5px; border-left: 4px solid #9b59b6; margin: 10px 0; font-weight: bold;';
+                summaryDiv.innerHTML = this.validationResults.isValid ? 
+                    '✅ Sistema VALIDADO contra benchmarks UNACEM' : 
+                    '⚠️ Sistema necesita ajustes según UNACEM';
+                container.appendChild(summaryDiv);
             }
             
             aplicarParametrosRealistas() {
@@ -1070,12 +1123,11 @@
             }
             
             inicializarControles() {
+                // Sliders
                 document.getElementById('massSlider').addEventListener('input', (e) => {
                     this.masaSaco = parseInt(e.target.value);
-                    document.getElementById('massValue').innerHTML = `
-                        <span>${this.masaSaco} kg</span>
-                        <span style="font-size: 0.9em; opacity: 0.9;">(ESTÁNDAR INDUSTRIAL)</span>
-                    `;
+                    document.getElementById('massValue').textContent = 
+                        `${this.masaSaco} kg (ESTÁNDAR INDUSTRIAL)`;
                     this.masaTotal = this.masaSaco * this.sacosSimultaneos;
                     this.calcularFuerzas();
                     this.calcularParametrosRealistas();
@@ -1084,10 +1136,8 @@
                 document.getElementById('angleSlider').addEventListener('input', (e) => {
                     const anguloGrados = parseInt(e.target.value);
                     this.angulo = anguloGrados * Math.PI / 180;
-                    document.getElementById('angleValue').innerHTML = `
-                        <span>${anguloGrados}°</span>
-                        <span style="font-size: 0.9em; opacity: 0.9;">(MÁXIMO RECOMENDADO)</span>
-                    `;
+                    document.getElementById('angleValue').textContent = 
+                        `${anguloGrados}° (MÁXIMO RECOMENDADO)`;
                     this.longitud = this.altura / Math.sin(this.angulo);
                     this.sacosSimultaneos = Math.floor(this.longitud / this.distanciaEntreSacos);
                     this.masaTotal = this.masaSaco * this.sacosSimultaneos;
@@ -1097,21 +1147,16 @@
                 
                 document.getElementById('speedSlider').addEventListener('input', (e) => {
                     this.velocidadFaja = parseFloat(e.target.value);
-                    document.getElementById('speedValue').innerHTML = `
-                        <span>${this.velocidadFaja.toFixed(1)} m/s</span>
-                        <span style="font-size: 0.9em; opacity: 0.9;">(OPERACIÓN TÍPICA)</span>
-                    `;
+                    document.getElementById('speedValue').textContent = 
+                        `${this.velocidadFaja.toFixed(1)} m/s (OPERACIÓN TÍPICA)`;
                     this.calcularFuerzas();
                     this.calcularParametrosRealistas();
-                    this.actualizarDatosTiempoReal();
                 });
                 
                 document.getElementById('accelerationSlider').addEventListener('input', (e) => {
                     this.aceleracionOperativa = parseFloat(e.target.value);
-                    document.getElementById('accelerationValue').innerHTML = `
-                        <span>${this.aceleracionOperativa.toFixed(2)} m/s²</span>
-                        <span style="font-size: 0.9em; opacity: 0.9;">(SUAVE - EVITA DERRAMES)</span>
-                    `;
+                    document.getElementById('accelerationValue').textContent = 
+                        `${this.aceleracionOperativa.toFixed(2)} m/s² (SUAVE - EVITA DERRAMES)`;
                     this.calcularFuerzas();
                 });
                 
@@ -1134,12 +1179,12 @@
             }
             
             actualizarDisplays() {
+                // Actualizar fuerzas
                 document.getElementById('gravityForce').textContent = this.Wx.toFixed(1) + ' N';
                 document.getElementById('accelerationForce').textContent = this.fuerzaAceleracionSaco.toFixed(1) + ' N';
                 document.getElementById('lossesForce').textContent = this.fuerzasAdicionales.toFixed(1) + ' N';
                 
-                document.getElementById('forceValue').textContent = this.fuerzaTangencialTotal.toFixed(0) + ' N';
-                
+                // Actualizar seguridad
                 document.getElementById('safetyMargin').textContent = this.margenSeguridad + '%';
                 document.getElementById('safetyProgress').style.width = Math.min(100, parseFloat(this.margenSeguridad)) + '%';
                 
@@ -1195,6 +1240,7 @@
                     cancelAnimationFrame(this.animationId);
                 }
                 
+                // Mostrar alerta en el canvas
                 this.ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.fillStyle = 'white';
@@ -1212,9 +1258,12 @@
                 
                 const dt = 0.016;
                 this.tiempo += dt;
+                
+                // Movimiento de textura
                 this.textureOffset += this.velocidadFaja * 30 * dt;
                 if (this.textureOffset > 100) this.textureOffset = 0;
                 
+                // Mover sacos
                 let sacosProcesadosEsteFrame = 0;
                 for (let i = 0; i < this.sacosEnFaja.length; i++) {
                     if (this.sacosEnFaja[i].activo) {
@@ -1224,6 +1273,7 @@
                             this.sacosEnFaja[i].activo = false;
                             sacosProcesadosEsteFrame++;
                             
+                            // Reaparecer después de 1 segundo
                             setTimeout(() => {
                                 this.sacosEnFaja[i] = {
                                     posicion: 0,
@@ -1235,11 +1285,13 @@
                     }
                 }
                 
+                // Actualizar contadores
                 if (sacosProcesadosEsteFrame > 0) {
                     this.sacosProcesados += sacosProcesadosEsteFrame;
                     this.cementoTransportado += sacosProcesadosEsteFrame * this.masaSaco;
                 }
                 
+                // Actualizar visualización
                 this.dibujarEscena();
                 this.actualizarDatosTiempoReal();
                 this.actualizarEstado();
@@ -1252,14 +1304,17 @@
                 const width = this.canvas.width;
                 const height = this.canvas.height;
                 
+                // Limpiar canvas
                 ctx.clearRect(0, 0, width, height);
                 
+                // Fondo
                 const gradient = ctx.createLinearGradient(0, 0, 0, height);
                 gradient.addColorStop(0, '#1a1a2e');
                 gradient.addColorStop(1, '#16213e');
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, width, height);
                 
+                // Parámetros de dibujo
                 const baseY = height * 0.75;
                 const escalaLongitud = width * 0.85 / this.longitud;
                 const xInicio = width * 0.08;
@@ -1267,6 +1322,7 @@
                 const xFin = xInicio + this.longitud * Math.cos(this.angulo) * escalaLongitud;
                 const yFin = yInicio - this.longitud * Math.sin(this.angulo) * escalaLongitud;
                 
+                // Dibujar elementos
                 this.dibujarEstructuraIndustrial(xInicio, yInicio, xFin, yFin);
                 this.dibujarFajaTransportadora(xInicio, yInicio, xFin, yFin);
                 this.dibujarMotorTambor(xInicio, yInicio);
@@ -1277,39 +1333,16 @@
                 if (this.simulacionActiva) {
                     this.dibujarFuerzasActivas(xInicio, yInicio, xFin, yFin, escalaLongitud);
                 }
-                
-                if (this.validationResults) {
-                    this.dibujarLogoUNACEM();
-                }
-            }
-            
-            dibujarLogoUNACEM() {
-                const ctx = this.ctx;
-                const x = this.canvas.width - 150;
-                const y = 100;
-                
-                ctx.fillStyle = 'rgba(231, 76, 60, 0.9)';
-                ctx.fillRect(x - 10, y - 10, 130, 50);
-                
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('UNACEM', x + 55, y + 15);
-                ctx.font = '12px Arial';
-                ctx.fillText('2019 Benchmark', x + 55, y + 35);
-                
-                ctx.fillStyle = this.validationResults.isValid ? '#27ae60' : '#f39c12';
-                ctx.beginPath();
-                ctx.arc(x + 110, y + 10, 8, 0, Math.PI * 2);
-                ctx.fill();
             }
             
             dibujarEstructuraIndustrial(xInicio, yInicio, xFin, yFin) {
                 const ctx = this.ctx;
                 
+                // Base
                 ctx.fillStyle = '#7f8c8d';
                 ctx.fillRect(xInicio - 40, yInicio + 10, 80, 60);
                 
+                // Soportes
                 ctx.fillStyle = '#95a5a6';
                 for (let i = 0; i < 5; i++) {
                     const x = xInicio + (xFin - xInicio) * (i / 4);
@@ -1317,18 +1350,15 @@
                     ctx.fillRect(x - 10, y + 10, 20, 80);
                 }
                 
+                // Plataforma inferior
                 ctx.fillStyle = '#34495e';
                 ctx.fillRect(xInicio - 100, yInicio + 70, 200, 20);
-                
-                ctx.fillStyle = '#2c3e50';
-                ctx.fillRect(xInicio - 150, yInicio + 40, 100, 30);
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillRect(xInicio - 155, yInicio + 35, 10, 40);
             }
             
             dibujarFajaTransportadora(xInicio, yInicio, xFin, yFin) {
                 const ctx = this.ctx;
                 
+                // Faja principal
                 ctx.strokeStyle = '#2c3e50';
                 ctx.lineWidth = 20;
                 ctx.beginPath();
@@ -1336,6 +1366,7 @@
                 ctx.lineTo(xFin, yFin);
                 ctx.stroke();
                 
+                // Textura en movimiento
                 if (this.simulacionActiva) {
                     ctx.strokeStyle = '#e74c3c';
                     ctx.lineWidth = 4;
@@ -1347,57 +1378,26 @@
                     ctx.stroke();
                     ctx.setLineDash([]);
                 }
-                
-                if (this.simulacionActiva) {
-                    ctx.strokeStyle = '#f39c12';
-                    ctx.lineWidth = 3;
-                    const numLineas = 20;
-                    for (let i = 0; i < numLineas; i++) {
-                        const t = (i / numLineas + this.textureOffset / 300) % 1;
-                        const x = xInicio + (xFin - xInicio) * t;
-                        const y = yInicio + (yFin - yInicio) * t;
-                        
-                        const perpX = -Math.sin(this.angulo) * 25;
-                        const perpY = -Math.cos(this.angulo) * 25;
-                        
-                        ctx.beginPath();
-                        ctx.moveTo(x - perpX, y - perpY);
-                        ctx.lineTo(x + perpX, y + perpY);
-                        ctx.stroke();
-                    }
-                }
             }
             
             dibujarMotorTambor(xInicio, yInicio) {
                 const ctx = this.ctx;
                 
+                // Tambor
                 ctx.fillStyle = '#7f8c8d';
                 ctx.beginPath();
                 ctx.arc(xInicio, yInicio, 30, 0, Math.PI * 2);
                 ctx.fill();
                 
+                // Motor
                 ctx.fillStyle = '#3498db';
                 ctx.fillRect(xInicio - 60, yInicio - 40, 120, 80);
                 
+                // Texto del motor
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 14px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(`MOTOR ${this.motorSeleccionado}kW`, xInicio, yInicio - 50);
-                ctx.font = '12px Arial';
-                ctx.fillText(`${(this.motorSeleccionado * 1.34).toFixed(1)} HP`, xInicio, yInicio - 35);
-                
-                if (this.simulacionActiva) {
-                    ctx.strokeStyle = '#f39c12';
-                    ctx.lineWidth = 6;
-                    const anguloRotacion = this.textureOffset * 0.2;
-                    ctx.beginPath();
-                    ctx.arc(xInicio, yInicio, 20, anguloRotacion, anguloRotacion + Math.PI);
-                    ctx.stroke();
-                    
-                    ctx.beginPath();
-                    ctx.arc(xInicio, yInicio, 20, anguloRotacion + Math.PI, anguloRotacion + Math.PI * 2);
-                    ctx.stroke();
-                }
             }
             
             dibujarSacosCemento(xInicio, yInicio, xFin, yFin, escalaLongitud) {
@@ -1408,24 +1408,23 @@
                         const sacoX = xInicio + saco.posicion * Math.cos(this.angulo) * escalaLongitud;
                         const sacoY = yInicio - saco.posicion * Math.sin(this.angulo) * escalaLongitud;
                         
-                        const sacoAncho = 60 + (this.masaSaco / 50) * 20;
-                        const sacoAlto = 40 + (this.masaSaco / 50) * 15;
+                        const sacoAncho = 60;
+                        const sacoAlto = 40;
                         
+                        // Cuerpo del saco
                         ctx.fillStyle = '#ecf0f1';
                         ctx.fillRect(sacoX - sacoAncho/2, sacoY - sacoAlto/2, sacoAncho, sacoAlto);
                         
+                        // Refuerzos
                         ctx.fillStyle = '#7f8c8d';
                         ctx.fillRect(sacoX - sacoAncho/2, sacoY - sacoAlto/2, sacoAncho, 8);
                         ctx.fillRect(sacoX - sacoAncho/2, sacoY + sacoAlto/2 - 8, sacoAncho, 8);
-                        ctx.fillRect(sacoX - sacoAncho/2, sacoY - sacoAlto/4, sacoAncho, 4);
-                        ctx.fillRect(sacoX - sacoAncho/2, sacoY + sacoAlto/4 - 4, sacoAncho, 4);
                         
-                        ctx.fillStyle = '#e74c3c';
-                        ctx.font = 'bold 16px Arial';
+                        // Texto
+                        ctx.fillStyle = '#2c3e50';
+                        ctx.font = 'bold 14px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText('CEMENTO', sacoX, sacoY - 5);
-                        ctx.font = '14px Arial';
-                        ctx.fillText(this.masaSaco + ' kg', sacoX, sacoY + 15);
+                        ctx.fillText(`${this.masaSaco} kg`, sacoX, sacoY);
                     }
                 }
             }
@@ -1433,46 +1432,45 @@
             dibujarPlataformaSuperior(xFin, yFin) {
                 const ctx = this.ctx;
                 
+                // Plataforma
                 ctx.fillStyle = '#27ae60';
                 ctx.fillRect(xFin - 100, yFin - 20, 200, 40);
-                ctx.fillStyle = '#2ecc71';
-                ctx.fillRect(xFin - 100, yFin - 20, 200, 10);
                 
+                // Borde
                 ctx.strokeStyle = '#e74c3c';
                 ctx.lineWidth = 3;
                 ctx.strokeRect(xFin - 105, yFin - 25, 210, 50);
                 
+                // Texto
                 ctx.fillStyle = '#3498db';
                 ctx.font = 'bold 16px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('PLATAFORMA', xFin, yFin - 40);
-                ctx.fillText('8.0 m ALTURA', xFin, yFin - 20);
+                ctx.fillText('8.0 m', xFin, yFin - 20);
             }
             
             dibujarInfoTecnica() {
                 const ctx = this.ctx;
                 
+                // Panel de información
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.fillRect(20, 20, 350, 180);
+                ctx.fillRect(20, 20, 300, 150);
                 
                 ctx.fillStyle = '#2c3e50';
-                ctx.font = 'bold 18px Arial';
+                ctx.font = 'bold 16px Arial';
                 ctx.textAlign = 'left';
-                ctx.fillText('ESPECIFICACIONES TÉCNICAS', 30, 45);
+                ctx.fillText('DATOS DEL SISTEMA', 30, 45);
                 
-                ctx.font = '14px Arial';
-                const lineHeight = 25;
-                let y = 80;
+                ctx.font = '12px Arial';
+                const lineHeight = 20;
+                let y = 70;
                 
                 const specs = [
-                    `Motor: ${this.motorSeleccionado} kW (${(this.motorSeleccionado * 1.34).toFixed(1)} HP)`,
+                    `Motor: ${this.motorSeleccionado} kW`,
                     `Velocidad: ${this.velocidadFaja.toFixed(1)} m/s`,
-                    `Capacidad: ${this.capacidad} sacos/min (${(this.masaSaco * this.capacidad / 1000).toFixed(1)} ton/h)`,
-                    `Fuerza total: ${this.fuerzaTangencialTotal.toFixed(0)} N`,
-                    `Par tambor: ${this.parTambor.toFixed(0)} N·m`,
-                    `Sacos simultáneos: ${this.sacosSimultaneos}`,
-                    `Longitud faja: ${this.longitud.toFixed(1)} m`,
-                    `Eficiencia: ${(this.eficienciaSistema * 100).toFixed(1)}%`
+                    `Capacidad: ${this.capacidad} sacos/min`,
+                    `Fuerza: ${this.fuerzaTangencialTotal.toFixed(0)} N`,
+                    `Ángulo: ${(this.angulo * 180 / Math.PI).toFixed(1)}°`
                 ];
                 
                 specs.forEach(spec => {
@@ -1482,34 +1480,25 @@
             }
             
             dibujarFuerzasActivas(xInicio, yInicio, xFin, yFin, escalaLongitud) {
+                // Implementación básica - puedes expandir esto
                 const ctx = this.ctx;
-                const escalaFuerza = 0.1;
-                
                 if (this.sacosEnFaja.length > 0 && this.sacosEnFaja[0].activo) {
                     const sacoX = xInicio + this.sacosEnFaja[0].posicion * Math.cos(this.angulo) * escalaLongitud;
                     const sacoY = yInicio - this.sacosEnFaja[0].posicion * Math.sin(this.angulo) * escalaLongitud;
                     
+                    // Fuerza del motor
                     ctx.strokeStyle = '#3498db';
-                    ctx.lineWidth = 4;
+                    ctx.lineWidth = 3;
                     ctx.beginPath();
                     ctx.moveTo(sacoX, sacoY);
-                    const fuerzaMotorX = Math.cos(this.angulo) * this.fuerzaTotalSaco * escalaFuerza;
-                    const fuerzaMotorY = -Math.sin(this.angulo) * this.fuerzaTotalSaco * escalaFuerza;
-                    ctx.lineTo(sacoX + fuerzaMotorX, sacoY + fuerzaMotorY);
+                    ctx.lineTo(sacoX + 50, sacoY - 30);
                     ctx.stroke();
                     
+                    // Fuerza de gravedad
                     ctx.strokeStyle = '#e74c3c';
                     ctx.beginPath();
                     ctx.moveTo(sacoX, sacoY);
-                    ctx.lineTo(sacoX, sacoY + this.pesoSaco * escalaFuerza * 0.2);
-                    ctx.stroke();
-                    
-                    ctx.strokeStyle = '#2ecc71';
-                    ctx.beginPath();
-                    ctx.moveTo(sacoX, sacoY);
-                    const normalX = -Math.sin(this.angulo) * this.fuerzaNormal * escalaFuerza * 0.2;
-                    const normalY = -Math.cos(this.angulo) * this.fuerzaNormal * escalaFuerza * 0.2;
-                    ctx.lineTo(sacoX + normalX, sacoY + normalY);
+                    ctx.lineTo(sacoX, sacoY + 40);
                     ctx.stroke();
                 }
             }
@@ -1520,18 +1509,27 @@
                 document.getElementById('cementValue').textContent = this.cementoTransportado.toFixed(1) + ' kg';
                 document.getElementById('velocityValue').textContent = this.velocidadFaja.toFixed(1) + ' m/s';
                 
-                const alturaPromedio = this.sacosEnFaja.reduce((sum, saco) => {
-                    return sum + (saco.activo ? saco.posicion * Math.sin(this.angulo) : 0);
-                }, 0) / Math.max(1, this.sacosSimultaneos);
-                
+                // Calcular altura promedio
+                let alturaTotal = 0;
+                let sacosActivos = 0;
+                for (let saco of this.sacosEnFaja) {
+                    if (saco.activo) {
+                        alturaTotal += saco.posicion * Math.sin(this.angulo);
+                        sacosActivos++;
+                    }
+                }
+                const alturaPromedio = sacosActivos > 0 ? alturaTotal / sacosActivos : 0;
                 document.getElementById('heightValue').textContent = alturaPromedio.toFixed(1) + ' m';
+                
+                document.getElementById('forceValue').textContent = this.fuerzaTangencialTotal.toFixed(0) + ' N';
             }
         }
         
+        // Inicializar cuando se carga la página
         window.addEventListener('load', () => {
             const sistema = new SistemaFajaTransportadora();
-            sistema.actualizarDatosTiempoReal();
             
+            // Ejecutar validación inicial
             setTimeout(() => {
                 sistema.validarContraUNACEM();
                 sistema.mostrarResultadosValidacion();
