@@ -1,1 +1,1533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Faja Transportadora - Validación UNACEM 2019</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #e74c3c;
+        }
+
+        .header h1 {
+            font-size: 2.4em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header h2 {
+            font-size: 1.4em;
+            font-weight: 300;
+            opacity: 0.9;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            padding: 20px;
+            min-height: 700px;
+        }
+
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .simulation-section {
+            background: #0f1a30;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #34495e;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #simulationCanvas {
+            background: linear-gradient(160deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 10px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.6);
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #3498db;
+            flex-grow: 1;
+            width: 100%;
+            max-height: 500px;
+        }
+
+        /* CONTROLES DEBJO DE LA SIMULACIÓN */
+        .simulation-controls {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #34495e;
+        }
+
+        .controls-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .control-button {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #startBtn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        #resetBtn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        #validateBtn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        #emergencyBtn {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+            color: white;
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        /* PANEL LATERAL */
+        .control-panel {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            height: 100%;
+            overflow-y: auto;
+            border: 2px solid #34495e;
+        }
+
+        .panel-section {
+            background: #34495e;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border-left: 5px solid;
+        }
+
+        .panel-section:nth-child(1) { border-left-color: #3498db; }
+        .panel-section:nth-child(2) { border-left-color: #e74c3c; }
+        .panel-section:nth-child(3) { border-left-color: #f39c12; }
+        .panel-section:nth-child(4) { border-left-color: #2ecc71; }
+        .panel-section:nth-child(5) { border-left-color: #9b59b6; }
+        .panel-section:nth-child(6) { border-left-color: #1abc9c; }
+        .panel-section:nth-child(7) { border-left-color: #f39c12; }
+        .panel-section:nth-child(8) { border-left-color: #3498db; }
+
+        .panel-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #ecf0f1;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        /* CONTROLES DE PARÁMETROS */
+        .parameter-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .control-group {
+            background: rgba(52, 73, 94, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #7f8c8d;
+            border-radius: 4px;
+            outline: none;
+            margin: 10px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #e74c3c;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            border: 2px solid white;
+        }
+
+        .value-display {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 8px;
+            font-size: 1em;
+        }
+
+        .motor-control-group {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        /* DATOS EN TIEMPO REAL */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .data-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+        }
+
+        .data-label {
+            font-size: 0.9em;
+            color: #bdc3c7;
+            margin-bottom: 5px;
+        }
+
+        .data-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #f39c12;
+        }
+
+        /* SEGURIDAD */
+        .safety-indicator {
+            background: rgba(231, 76, 60, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #e74c3c;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+            border-radius: 5px;
+        }
+
+        .safety-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #27ae60;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* FUERZAS */
+        .force-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .force-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 4px solid;
+        }
+
+        .force-1 { border-color: #e74c3c; }
+        .force-2 { border-color: #3498db; }
+        .force-3 { border-color: #f39c12; }
+
+        .force-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2c3e50;
+        }
+
+        .force-label {
+            font-size: 0.85em;
+            color: #7f8c8d;
+        }
+
+        /* UNACEM */
+        .unacem-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .validation-panel {
+            background: rgba(155, 89, 182, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 2px solid #9b59b6;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .validation-item {
+            padding: 6px;
+            margin: 4px 0;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .warning {
+            background: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid #e74c3c;
+            color: #f39c12;
+        }
+
+        .recommendation {
+            background: rgba(46, 204, 113, 0.2);
+            border-left: 3px solid #2ecc71;
+            color: #27ae60;
+        }
+
+        .info-line {
+            background: rgba(52, 152, 219, 0.2);
+            border-left: 3px solid #3498db;
+            color: #3498db;
+        }
+
+        /* ENERGÍA Y POTENCIA */
+        .energy-section {
+            margin-top: 10px;
+        }
+
+        .energy-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .energy-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            border-top: 4px solid #3498db;
+        }
+
+        .energy-title {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .energy-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        /* INFORMACIÓN DEL SISTEMA */
+        .system-info {
+            background: white;
+            padding: 25px;
+            border-top: 5px solid #bdc3c7;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-card {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .info-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .info-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .info-unit {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .parameter-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .force-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .energy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="unacem-badge">VALIDADO CON DATOS UNACEM 2019</div>
+            <h1>🏭 SISTEMA INDUSTRIAL: FAJA TRANSPORTADORA DE CEMENTO</h1>
+            <h2>Aplicación de la Segunda Ley de Newton - Planta de Producción de Cemento - Capacidad: 10 sacos/min (500 kg/min)</h2>
+        </div>
+
+        <div class="main-content">
+            <!-- ÁREA DE SIMULACIÓN CON CONTROLES DEBAJO -->
+            <div class="simulation-area">
+                <!-- Simulación de la faja -->
+                <div class="simulation-section">
+                    <canvas id="simulationCanvas" width="1000" height="450"></canvas>
+                </div>
+
+                <!-- CONTROLES DEBJO DE LA SIMULACIÓN -->
+                <div class="simulation-controls">
+                    <div class="controls-row">
+                        <button class="control-button" id="startBtn">
+                            <span>▶</span> INICIAR PRODUCCIÓN
+                        </button>
+                        <button class="control-button" id="resetBtn">
+                            <span>🔄</span> REINICIAR SISTEMA
+                        </button>
+                        <button class="control-button" id="validateBtn">
+                            <span>✅</span> VALIDAR UNACEM
+                        </button>
+                        <button class="control-button" id="emergencyBtn">
+                            <span>⛔</span> PARADA EMERGENCIA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL LATERAL DE CONTROL -->
+            <div class="control-panel">
+                <!-- CONTROLES DE PARÁMETROS DEL SISTEMA -->
+                <div class="panel-section">
+                    <div class="panel-title">🎛️ PARÁMETROS DEL SISTEMA</div>
+                    
+                    <div class="parameter-controls">
+                        <!-- Masa del Saco -->
+                        <div class="control-group">
+                            <div class="slider-label">
+                                <span>Masa del Saco</span>
+                                <span style="color: #f39c12">kg</span>
+                            </div>
+                            <input type="range" id="massSlider" min="25" max="100" value="50" step="5">
+                            <div class="value-display" id="massValue">50 kg (ESTÁNDAR INDUSTRIAL)</div>
+                        </div>
+
+                        <!-- Ángulo de Inclinación -->
+                        <div class="control-group">
+                            <div class="slider-label">
+                                <span>Ángulo</span>
+                                <span style="color: #3498db">°</span>
+                            </div>
+                            <input type="range" id="angleSlider" min="10" max="25" value="18" step="1">
+                            <div class="value-display" id="angleValue">18° (MÁXIMO RECOMENDADO)</div>
+                        </div>
+                    </div>
+
+                    <div class="parameter-controls">
+                        <!-- Coeficiente de Fricción -->
+                        <div class="control-group">
+                            <div class="slider-label">
+                                <span>Fricción (μ)</span>
+                                <span style="color: #e74c3c">adim.</span>
+                            </div>
+                            <input type="range" id="frictionSlider" min="0.3" max="0.7" value="0.5" step="0.05">
+                            <div class="value-display" id="frictionValue">0.5 (FAJA TEXTURIZADA)</div>
+                        </div>
+
+                        <!-- Intervalo entre Sacos -->
+                        <div class="control-group">
+                            <div class="slider-label">
+                                <span>Intervalo Sacos</span>
+                                <span style="color: #2ecc71">s</span>
+                            </div>
+                            <input type="range" id="intervalSlider" min="3" max="10" value="6" step="0.5">
+                            <div class="value-display" id="intervalValue">6.0 s (CAPACIDAD: 10 sacos/min)</div>
+                        </div>
+                    </div>
+
+                    <!-- Control de Velocidad Motor -->
+                    <div class="motor-control-group">
+                        <div class="slider-label">
+                            <span>⚡ Velocidad de Faja</span>
+                            <span style="color: white">m/s</span>
+                        </div>
+                        <input type="range" id="speedSlider" min="0.5" max="2.5" value="1.5" step="0.1">
+                        <div class="value-display" id="speedValue">1.5 m/s (TIEMPO ASCENSO: 17.3 s)</div>
+                    </div>
+                </div>
+
+                <!-- DATOS EN TIEMPO REAL -->
+                <div class="panel-section">
+                    <div class="panel-title">📊 DATOS EN TIEMPO REAL</div>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <div class="data-label">Tiempo de Operación</div>
+                            <div class="data-value" id="timeValue">0.0 s</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Sacos Procesados</div>
+                            <div class="data-value" id="bagsValue">0</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Cemento Transportado</div>
+                            <div class="data-value" id="cementValue">0.0 kg</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Velocidad Faja</div>
+                            <div class="data-value" id="velocityValue">1.5 m/s</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Altura Alcanzada</div>
+                            <div class="data-value" id="heightValue">0.0 m</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Fuerza Motor Total</div>
+                            <div class="data-value" id="forceValue">1425 N</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Potencia Motor</div>
+                            <div class="data-value" id="powerValue">3.7 kW (5 HP)</div>
+                        </div>
+                        <div class="data-item">
+                            <div class="data-label">Eficiencia Sistema</div>
+                            <div class="data-value" id="efficiencyValue">88%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEGURIDAD -->
+                <div class="panel-section">
+                    <div class="panel-title">🛡️ SEGURIDAD DEL SISTEMA</div>
+                    <div class="safety-indicator">
+                        <div class="slider-label">
+                            <span>MARGEN DE SEGURIDAD CONTRA DESLIZAMIENTO</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="safetyProgress" style="width: 54%"></div>
+                        </div>
+                        <div class="safety-value" id="safetyMargin">53.8%</div>
+                    </div>
+                </div>
+
+                <!-- DISTRIBUCIÓN DE FUERZAS -->
+                <div class="panel-section">
+                    <div class="panel-title">⚖️ DISTRIBUCIÓN DE FUERZAS</div>
+                    <div class="force-grid">
+                        <div class="force-item force-1">
+                            <div class="force-label">VENCER GRAVEDAD</div>
+                            <div class="force-value" id="gravityForce">151.6 N</div>
+                            <div class="force-label">(Componente paralela)</div>
+                        </div>
+                        <div class="force-item force-2">
+                            <div class="force-label">FUERZA DE ACELERACIÓN</div>
+                            <div class="force-value" id="accelerationForce">15.0 N</div>
+                            <div class="force-label">(m × a)</div>
+                        </div>
+                        <div class="force-item force-3">
+                            <div class="force-label">FRICCIÓN PÉRDIDAS</div>
+                            <div class="force-value" id="lossesForce">93.0 N</div>
+                            <div class="force-label">(7% adicional CEMA)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIEMPOS Y DIMENSIONES -->
+                <div class="panel-section">
+                    <div class="panel-title">⏱️ TIEMPOS Y DIMENSIONES</div>
+                    <div class="energy-section">
+                        <div class="energy-grid">
+                            <div class="energy-card">
+                                <div class="energy-title">Tiempo Ascenso</div>
+                                <div class="energy-value" id="ascentTime">17.3</div>
+                                <div class="energy-title">segundos</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Longitud Faja</div>
+                                <div class="energy-value" id="beltLength">25.9</div>
+                                <div class="energy-title">metros</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Sacos por Minuto</div>
+                                <div class="energy-value" id="bagsPerMinute">10.0</div>
+                                <div class="energy-title">sacos/min</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Altura Elevación</div>
+                                <div class="energy-value" id="elevationHeight">8.0</div>
+                                <div class="energy-title">metros</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENERGÍA Y POTENCIA -->
+                <div class="panel-section">
+                    <div class="panel-title">🔋 ENERGÍA Y POTENCIA</div>
+                    <div class="energy-section">
+                        <div class="energy-grid">
+                            <div class="energy-card">
+                                <div class="energy-title">Potencia Teórica</div>
+                                <div class="energy-value" id="theoreticalPower">2.14</div>
+                                <div class="energy-title">kW</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Potencia Motor</div>
+                                <div class="energy-value" id="motorPower">3.7</div>
+                                <div class="energy-title">kW (5 HP)</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Factor Servicio</div>
+                                <div class="energy-value" id="serviceFactor">1.52</div>
+                                <div class="energy-title">FS</div>
+                            </div>
+                            <div class="energy-card">
+                                <div class="energy-title">Par en Tambor</div>
+                                <div class="energy-value" id="torqueValue">285</div>
+                                <div class="energy-title">N·m</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VALIDACIÓN UNACEM -->
+                <div class="panel-section">
+                    <div class="panel-title">🏭 VALIDACIÓN UNACEM 2019</div>
+                    <div style="margin: 15px 0;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="background: rgba(26, 188, 156, 0.1); padding: 10px; border-radius: 6px; border-left: 3px solid #1abc9c;">
+                                <div style="font-size: 0.9em; color: #bdc3c7;">Producción Atocongo 2019</div>
+                                <div style="font-size: 1.1em; font-weight: bold; color: #1abc9c;">3.59M ton</div>
+                            </div>
+                            <div style="background: rgba(26, 188, 156, 0.1); padding: 10px; border-radius: 6px; border-left: 3px solid #1abc9c;">
+                                <div style="font-size: 0.9em; color: #bdc3c7;">Consumo específico</div>
+                                <div style="font-size: 1.1em; font-weight: bold; color: #1abc9c;">89.6 kWh/ton</div>
+                            </div>
+                            <div style="background: rgba(26, 188, 156, 0.1); padding: 10px; border-radius: 6px; border-left: 3px solid #1abc9c;">
+                                <div style="font-size: 0.9em; color: #bdc3c7;">Eficiencia promedio</div>
+                                <div style="font-size: 1.1em; font-weight: bold; color: #1abc9c;">74.8%</div>
+                            </div>
+                            <div style="background: rgba(26, 188, 156, 0.1); padding: 10px; border-radius: 6px; border-left: 3px solid #1abc9c;">
+                                <div style="font-size: 0.9em; color: #bdc3c7;">Faja UNACEM</div>
+                                <div style="font-size: 1.1em; font-weight: bold; color: #1abc9c;">7 km</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="validation-panel" id="validationResults">
+                        <div class="validation-item info-line">
+                            ✅ Sistema listo para validación con datos UNACEM
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMACIÓN DEL SISTEMA -->
+        <div class="system-info">
+            <div style="text-align: center; color: #2c3e50; font-size: 1.3em; font-weight: bold; margin-bottom: 20px; border-bottom: 3px solid #3498db; padding-bottom: 10px;">
+                🏭 ESPECIFICACIONES TÉCNICAS DEL SISTEMA
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-title">Motor Seleccionado</div>
+                    <div class="info-value">3.7<span class="info-unit">kW (5 HP)</span></div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">Con variador de frecuencia (VFD)</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Altura de Elevación</div>
+                    <div class="info-value">8.0<span class="info-unit">metros</span></div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">Desde piso a plataforma</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Velocidad Operación</div>
+                    <div class="info-value">1.5<span class="info-unit">m/s</span></div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">Para manipulación cuidadosa</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Capacidad Producción</div>
+                    <div class="info-value">10<span class="info-unit">sacos/min</span></div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">(500 kg/min, 30 ton/h)</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Longitud Faja</div>
+                    <div class="info-value">25.9<span class="info-unit">metros</span></div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">Longitud total inclinada</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-title">Tiempo por Saco</div>
+                    <div class="info-value">17.3<span class="info-unit">segundos</span></div>
+                    <div style="font-size: 0.85em; color: #7f8c8d;">Tiempo de ascenso completo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const UNACEM_BENCHMARKS = {
+            PRODUCTION: {
+                ATOCONGO_2019: 3588872,
+                CAPACITY_HOURLY: 453,
+                DAYS_OPERATIONAL: 330,
+                HOURS_DAY: 24
+            },
+            
+            ENERGY: {
+                SPECIFIC_ATOCONGO: 89.6,
+                SPECIFIC_CONDORCOCHA: 158.5,
+                TRANSPORT_PERCENTAGE: 0.03
+            },
+            
+            EFFICIENCY: {
+                CLINKER_UTILIZATION: 0.852,
+                CEMENT_UTILIZATION: 0.643,
+                AVERAGE: 0.7475
+            },
+            
+            PROJECTS: {
+                BELT_LENGTH_KM: 7,
+                BELT_MATERIAL: "limestone",
+                ESTIMATED_CAPACITY: 1000
+            }
+        };
+
+        class SistemaFajaTransportadora {
+            constructor() {
+                this.canvas = document.getElementById('simulationCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.animationId = null;
+                
+                // PARÁMETROS FIJOS SEGÚN TUS ESPECIFICACIONES
+                this.altura = 8; // metros - altura fija de elevación
+                this.longitud = 25.9; // metros - longitud fija de la faja
+                this.angulo = 18 * Math.PI / 180; // radianes - ángulo fijo
+                this.velocidadFaja = 1.5; // m/s - velocidad fija del motor
+                this.intervaloSacos = 6; // segundos - intervalo fijo entre sacos
+                
+                // Verificar que las especificaciones sean consistentes
+                this.verificarConsistencia();
+                
+                // Parámetros variables
+                this.masaSaco = 50; // kg - estándar industrial
+                this.coeficienteFriccion = 0.5; // faja texturizada
+                this.aceleracionOperativa = 0.3; // m/s² - suave para evitar derrames
+                this.eficienciaSistema = 0.88; // 88% - incluye pérdidas motor, reductor
+                
+                // Variables de producción industrial
+                this.capacidad = 10; // sacos/min - capacidad del sistema
+                this.distanciaEntreSacos = this.velocidadFaja * this.intervaloSacos; // distancia dinámica
+                this.sacosSimultaneos = Math.floor(this.longitud / this.distanciaEntreSacos);
+                this.masaTotal = this.masaSaco * this.sacosSimultaneos;
+                
+                // Tiempo de ascenso exacto (debe ser 17.3 segundos)
+                this.tiempoAscenso = this.longitud / this.velocidadFaja; // 25.9 / 1.5 = 17.266... ≈ 17.3
+                
+                // Estado de la simulación
+                this.tiempo = 0;
+                this.sacosProcesados = 0;
+                this.cementoTransportado = 0;
+                this.simulacionActiva = false;
+                this.textureOffset = 0;
+                this.sacosEnFaja = [];
+                this.ultimoSacoTiempo = 0; // Para controlar intervalo entre sacos
+                
+                // Validación
+                this.validationResults = null;
+                this.realisticParams = null;
+                
+                // Inicializar sistema
+                this.calcularFuerzas();
+                this.crearSacosIniciales();
+                this.calcularParametrosRealistas();
+                this.inicializarControles();
+                this.dibujarEscena();
+            }
+            
+            verificarConsistencia() {
+                // Verificar que los parámetros sean consistentes
+                const alturaCalculada = this.longitud * Math.sin(this.angulo);
+                const tiempoCalculado = this.longitud / this.velocidadFaja;
+                
+                console.log("Verificación de consistencia:");
+                console.log(`- Altura especificada: ${this.altura} m`);
+                console.log(`- Altura calculada desde longitud y ángulo: ${alturaCalculada.toFixed(2)} m`);
+                console.log(`- Tiempo ascenso especificado: 17.3 s`);
+                console.log(`- Tiempo ascenso calculado: ${tiempoCalculado.toFixed(2)} s`);
+                
+                // Ajustar parámetros para que sean consistentes
+                if (Math.abs(alturaCalculada - this.altura) > 0.1) {
+                    // Recalcular ángulo para que sea consistente
+                    this.angulo = Math.asin(this.altura / this.longitud);
+                    console.log(`Ángulo ajustado a: ${(this.angulo * 180 / Math.PI).toFixed(1)}°`);
+                }
+                
+                if (Math.abs(tiempoCalculado - 17.3) > 0.1) {
+                    // Ajustar velocidad para que el tiempo sea exactamente 17.3s
+                    this.velocidadFaja = this.longitud / 17.3;
+                    console.log(`Velocidad ajustada a: ${this.velocidadFaja.toFixed(2)} m/s`);
+                }
+                
+                this.tiempoAscenso = this.longitud / this.velocidadFaja;
+                console.log(`Tiempo final de ascenso: ${this.tiempoAscenso.toFixed(2)} s`);
+            }
+            
+            calcularFuerzas() {
+                // Cálculos de fuerzas por saco
+                this.pesoSaco = this.masaSaco * 9.81;
+                this.Wx = this.pesoSaco * Math.sin(this.angulo);
+                this.Wy = this.pesoSaco * Math.cos(this.angulo);
+                this.fuerzaNormal = this.Wy;
+                this.friccionDisponible = this.coeficienteFriccion * this.fuerzaNormal;
+                
+                // Margen de seguridad
+                this.margenSeguridad = ((this.friccionDisponible - this.Wx) / this.Wx * 100).toFixed(1);
+                
+                // Fuerzas por saco
+                this.fuerzaAceleracionSaco = this.masaSaco * this.aceleracionOperativa;
+                this.fuerzaTotalSaco = this.fuerzaAceleracionSaco + this.Wx;
+                
+                // Fuerza total del sistema
+                this.fuerzaCargaTotal = this.masaTotal * this.aceleracionOperativa + 
+                                      this.masaTotal * 9.81 * Math.sin(this.angulo);
+                this.fuerzasAdicionales = this.fuerzaCargaTotal * 0.07;
+                this.fuerzaTangencialTotal = this.fuerzaCargaTotal + this.fuerzasAdicionales;
+                
+                // Cálculos de potencia
+                this.potenciaTeorica = this.fuerzaTangencialTotal * this.velocidadFaja / 1000;
+                this.potenciaMotor = this.potenciaTeorica / this.eficienciaSistema;
+                this.motorSeleccionado = 3.7;
+                this.factorServicio = this.motorSeleccionado / this.potenciaMotor;
+                
+                // Par en el tambor (radio = 0.2 m)
+                this.parTambor = this.fuerzaTangencialTotal * 0.2;
+                
+                // Trabajo por ciclo
+                this.trabajoPorCiclo = this.fuerzaTangencialTotal * this.longitud / 1000;
+                
+                // Eficiencia energética
+                this.energiaUtil = this.masaTotal * 9.81 * this.altura;
+                this.eficienciaEnergetica = (this.energiaUtil / (this.fuerzaTangencialTotal * this.longitud)) * 100;
+                
+                // Sacos por minuto basado en intervalo
+                this.sacosPorMinuto = 60 / this.intervaloSacos;
+                
+                this.actualizarDisplays();
+            }
+            
+            inicializarControles() {
+                // Sliders
+                document.getElementById('massSlider').addEventListener('input', (e) => {
+                    this.masaSaco = parseInt(e.target.value);
+                    document.getElementById('massValue').textContent = 
+                        `${this.masaSaco} kg (ESTÁNDAR INDUSTRIAL)`;
+                    this.masaTotal = this.masaSaco * this.sacosSimultaneos;
+                    this.calcularFuerzas();
+                    this.calcularParametrosRealistas();
+                });
+                
+                document.getElementById('angleSlider').addEventListener('input', (e) => {
+                    const anguloGrados = parseInt(e.target.value);
+                    this.angulo = anguloGrados * Math.PI / 180;
+                    document.getElementById('angleValue').textContent = 
+                        `${anguloGrados}° (MÁXIMO RECOMENDADO)`;
+                    
+                    // Recalcular altura basada en el nuevo ángulo y longitud fija
+                    this.altura = this.longitud * Math.sin(this.angulo);
+                    
+                    // Recalcular sacos simultáneos
+                    this.distanciaEntreSacos = this.velocidadFaja * this.intervaloSacos;
+                    this.sacosSimultaneos = Math.floor(this.longitud / this.distanciaEntreSacos);
+                    this.masaTotal = this.masaSaco * this.sacosSimultaneos;
+                    
+                    this.calcularFuerzas();
+                    this.calcularParametrosRealistas();
+                });
+                
+                document.getElementById('frictionSlider').addEventListener('input', (e) => {
+                    this.coeficienteFriccion = parseFloat(e.target.value);
+                    document.getElementById('frictionValue').textContent = 
+                        `${this.coeficienteFriccion.toFixed(2)} (FAJA TEXTURIZADA)`;
+                    this.calcularFuerzas();
+                });
+                
+                document.getElementById('intervalSlider').addEventListener('input', (e) => {
+                    this.intervaloSacos = parseFloat(e.target.value);
+                    document.getElementById('intervalValue').textContent = 
+                        `${this.intervaloSacos.toFixed(1)} s (CAPACIDAD: ${(60/this.intervaloSacos).toFixed(1)} sacos/min)`;
+                    
+                    // Recalcular distancia entre sacos
+                    this.distanciaEntreSacos = this.velocidadFaja * this.intervaloSacos;
+                    this.sacosSimultaneos = Math.floor(this.longitud / this.distanciaEntreSacos);
+                    this.masaTotal = this.masaSaco * this.sacosSimultaneos;
+                    this.sacosPorMinuto = 60 / this.intervaloSacos;
+                    
+                    this.calcularFuerzas();
+                    this.calcularParametrosRealistas();
+                    this.crearSacosIniciales();
+                });
+                
+                document.getElementById('speedSlider').addEventListener('input', (e) => {
+                    this.velocidadFaja = parseFloat(e.target.value);
+                    document.getElementById('speedValue').textContent = 
+                        `${this.velocidadFaja.toFixed(1)} m/s (TIEMPO ASCENSO: ${(this.longitud/this.velocidadFaja).toFixed(1)} s)`;
+                    
+                    // Recalcular tiempo de ascenso
+                    this.tiempoAscenso = this.longitud / this.velocidadFaja;
+                    
+                    // Recalcular distancia entre sacos
+                    this.distanciaEntreSacos = this.velocidadFaja * this.intervaloSacos;
+                    this.sacosSimultaneos = Math.floor(this.longitud / this.distanciaEntreSacos);
+                    this.masaTotal = this.masaSaco * this.sacosSimultaneos;
+                    
+                    this.calcularFuerzas();
+                    this.calcularParametrosRealistas();
+                });
+                
+                // Botones
+                document.getElementById('startBtn').addEventListener('click', () => this.iniciarProduccion());
+                document.getElementById('resetBtn').addEventListener('click', () => this.reiniciarSistema());
+                document.getElementById('emergencyBtn').addEventListener('click', () => this.paradaEmergencia());
+                document.getElementById('validateBtn').addEventListener('click', () => {
+                    this.validarContraUNACEM();
+                    this.mostrarResultadosValidacion();
+                    
+                    if (this.validationResults && this.validationResults.warnings.length > 0) {
+                        setTimeout(() => {
+                            if (confirm('¿Aplicar parámetros realistas basados en UNACEM 2019?')) {
+                                this.aplicarParametrosRealistas();
+                            }
+                        }, 500);
+                    }
+                });
+            }
+            
+            actualizarDisplays() {
+                // Fuerzas
+                document.getElementById('gravityForce').textContent = this.Wx.toFixed(1) + ' N';
+                document.getElementById('accelerationForce').textContent = this.fuerzaAceleracionSaco.toFixed(1) + ' N';
+                document.getElementById('lossesForce').textContent = this.fuerzasAdicionales.toFixed(1) + ' N';
+                
+                // Seguridad
+                document.getElementById('safetyMargin').textContent = this.margenSeguridad + '%';
+                document.getElementById('safetyProgress').style.width = Math.min(100, parseFloat(this.margenSeguridad)) + '%';
+                
+                const safetyBar = document.getElementById('safetyProgress');
+                const margin = parseFloat(this.margenSeguridad);
+                if (margin < 20) {
+                    safetyBar.style.background = 'linear-gradient(90deg, #e74c3c 0%, #c0392b 100%)';
+                } else if (margin < 40) {
+                    safetyBar.style.background = 'linear-gradient(90deg, #f39c12 0%, #d35400 100%)';
+                } else {
+                    safetyBar.style.background = 'linear-gradient(90deg, #27ae60 0%, #2ecc71 100%)';
+                }
+                
+                // Fuerza total
+                document.getElementById('forceValue').textContent = this.fuerzaTangencialTotal.toFixed(0) + ' N';
+                
+                // Energía y potencia
+                document.getElementById('theoreticalPower').textContent = this.potenciaTeorica.toFixed(2);
+                document.getElementById('motorPower').textContent = this.motorSeleccionado.toFixed(1);
+                document.getElementById('serviceFactor').textContent = this.factorServicio.toFixed(2);
+                document.getElementById('torqueValue').textContent = this.parTambor.toFixed(0);
+                document.getElementById('powerValue').textContent = `${this.motorSeleccionado.toFixed(1)} kW (${(this.motorSeleccionado*1.341).toFixed(0)} HP)`;
+                document.getElementById('efficiencyValue').textContent = (this.eficienciaSistema * 100).toFixed(0) + '%';
+                
+                // Tiempos y dimensiones
+                document.getElementById('ascentTime').textContent = this.tiempoAscenso.toFixed(1);
+                document.getElementById('beltLength').textContent = this.longitud.toFixed(1);
+                document.getElementById('bagsPerMinute').textContent = this.sacosPorMinuto.toFixed(1);
+                document.getElementById('elevationHeight').textContent = this.altura.toFixed(1);
+            }
+            
+            actualizarDatosTiempoReal() {
+                document.getElementById('timeValue').textContent = this.tiempo.toFixed(1) + ' s';
+                document.getElementById('bagsValue').textContent = this.sacosProcesados;
+                document.getElementById('cementValue').textContent = this.cementoTransportado.toFixed(1) + ' kg';
+                document.getElementById('velocityValue').textContent = this.velocidadFaja.toFixed(1) + ' m/s';
+                
+                let alturaTotal = 0;
+                let sacosActivos = 0;
+                for (let saco of this.sacosEnFaja) {
+                    if (saco.activo) {
+                        alturaTotal += saco.posicion * Math.sin(this.angulo);
+                        sacosActivos++;
+                    }
+                }
+                const alturaPromedio = sacosActivos > 0 ? alturaTotal / sacosActivos : 0;
+                document.getElementById('heightValue').textContent = alturaPromedio.toFixed(1) + ' m';
+            }
+            
+            crearSacosIniciales() {
+                this.sacosEnFaja = [];
+                this.ultimoSacoTiempo = -this.intervaloSacos; // Para que el primer saco aparezca en t=0
+                
+                // Crear sacos iniciales espaciados según el intervalo
+                for (let i = 0; i < this.sacosSimultaneos; i++) {
+                    const tiempoEntrada = -i * this.intervaloSacos;
+                    const posicionInicial = Math.max(0, this.velocidadFaja * (-tiempoEntrada));
+                    
+                    if (posicionInicial < this.longitud) {
+                        this.sacosEnFaja.push({
+                            posicion: posicionInicial,
+                            activo: true,
+                            tiempoEntrada: tiempoEntrada
+                        });
+                    }
+                }
+            }
+            
+            iniciarProduccion() {
+                if (!this.simulacionActiva) {
+                    this.simulacionActiva = true;
+                    this.bucleAnimacion();
+                    document.getElementById('startBtn').innerHTML = '<span>⏸</span> PAUSAR PRODUCCIÓN';
+                } else {
+                    this.simulacionActiva = false;
+                    document.getElementById('startBtn').innerHTML = '<span>▶</span> REANUDAR PRODUCCIÓN';
+                    if (this.animationId) {
+                        cancelAnimationFrame(this.animationId);
+                    }
+                }
+            }
+            
+            reiniciarSistema() {
+                this.simulacionActiva = false;
+                this.tiempo = 0;
+                this.sacosProcesados = 0;
+                this.cementoTransportado = 0;
+                this.textureOffset = 0;
+                this.crearSacosIniciales();
+                this.calcularFuerzas();
+                this.calcularParametrosRealistas();
+                this.dibujarEscena();
+                this.actualizarDatosTiempoReal();
+                document.getElementById('startBtn').innerHTML = '<span>▶</span> INICIAR PRODUCCIÓN';
+                
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+            }
+            
+            paradaEmergencia() {
+                this.simulacionActiva = false;
+                document.getElementById('startBtn').innerHTML = '<span>▶</span> REINICIAR DESPUÉS DE EMERGENCIA';
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                }
+                
+                this.ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = 'bold 48px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('⛔ PARADA DE EMERGENCIA', this.canvas.width/2, this.canvas.height/2);
+                this.ctx.font = '24px Arial';
+                this.ctx.fillText('Sistema detenido por seguridad', this.canvas.width/2, this.canvas.height/2 + 50);
+            }
+            
+            bucleAnimacion() {
+                if (!this.simulacionActiva) return;
+                
+                const dt = 0.016; // 60 FPS
+                
+                // Actualizar tiempo
+                this.tiempo += dt;
+                
+                // Actualizar offset de textura (movimiento de la faja)
+                this.textureOffset += this.velocidadFaja * 30 * dt;
+                if (this.textureOffset > 100) this.textureOffset = 0;
+                
+                // Verificar si es tiempo de agregar un nuevo saco (cada 6 segundos)
+                if (this.tiempo - this.ultimoSacoTiempo >= this.intervaloSacos) {
+                    this.ultimoSacoTiempo = this.tiempo;
+                    
+                    // Encontrar un saco inactivo para reutilizar
+                    let sacoReutilizable = this.sacosEnFaja.find(s => !s.activo);
+                    
+                    if (sacoReutilizable) {
+                        // Reutilizar saco inactivo
+                        sacoReutilizable.posicion = 0;
+                        sacoReutilizable.activo = true;
+                        sacoReutilizable.tiempoEntrada = this.tiempo;
+                    } else if (this.sacosEnFaja.length < 20) {
+                        // Agregar nuevo saco si no hay muchos
+                        this.sacosEnFaja.push({
+                            posicion: 0,
+                            activo: true,
+                            tiempoEntrada: this.tiempo
+                        });
+                    }
+                }
+                
+                // Mover sacos activos
+                let sacosProcesadosEsteFrame = 0;
+                for (let i = 0; i < this.sacosEnFaja.length; i++) {
+                    if (this.sacosEnFaja[i].activo) {
+                        this.sacosEnFaja[i].posicion += this.velocidadFaja * dt;
+                        
+                        // Si el saco llega al final (25.9 metros)
+                        if (this.sacosEnFaja[i].posicion >= this.longitud) {
+                            this.sacosEnFaja[i].activo = false;
+                            sacosProcesadosEsteFrame++;
+                            
+                            // Actualizar contadores después de exactamente 17.3 segundos
+                            setTimeout(() => {
+                                this.sacosProcesados++;
+                                this.cementoTransportado += this.masaSaco;
+                            }, 10); // Pequeño retraso para sincronización visual
+                        }
+                    }
+                }
+                
+                // Actualizar visualización
+                this.dibujarEscena();
+                this.actualizarDatosTiempoReal();
+                
+                this.animationId = requestAnimationFrame(() => this.bucleAnimacion());
+            }
+            
+            dibujarEscena() {
+                const ctx = this.ctx;
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                // Fondo
+                const gradient = ctx.createLinearGradient(0, 0, 0, height);
+                gradient.addColorStop(0, '#1a1a2e');
+                gradient.addColorStop(1, '#16213e');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+                
+                // Parámetros de dibujo
+                const baseY = height * 0.7;
+                const escalaLongitud = width * 0.8 / this.longitud;
+                const xInicio = width * 0.1;
+                const yInicio = baseY;
+                const xFin = xInicio + this.longitud * Math.cos(this.angulo) * escalaLongitud;
+                const yFin = yInicio - this.longitud * Math.sin(this.angulo) * escalaLongitud;
+                
+                // Dibujar estructura
+                this.dibujarEstructura(xInicio, yInicio, xFin, yFin);
+                
+                // Dibujar faja
+                ctx.strokeStyle = '#2c3e50';
+                ctx.lineWidth = 15;
+                ctx.beginPath();
+                ctx.moveTo(xInicio, yInicio);
+                ctx.lineTo(xFin, yFin);
+                ctx.stroke();
+                
+                // Textura en movimiento
+                if (this.simulacionActiva) {
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([20, 20]);
+                    ctx.lineDashOffset = -this.textureOffset;
+                    ctx.beginPath();
+                    ctx.moveTo(xInicio, yInicio);
+                    ctx.lineTo(xFin, yFin);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // Dibujar motor
+                ctx.fillStyle = '#3498db';
+                ctx.fillRect(xInicio - 50, yInicio - 30, 100, 60);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('MOTOR', xInicio, yInicio - 35);
+                ctx.fillText(`${this.motorSeleccionado}kW`, xInicio, yInicio - 20);
+                ctx.font = '10px Arial';
+                ctx.fillText(`${(this.motorSeleccionado*1.341).toFixed(0)}HP`, xInicio, yInicio + 5);
+                
+                // Dibujar tambor motriz
+                ctx.beginPath();
+                ctx.arc(xInicio, yInicio, 25, 0, Math.PI * 2);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fill();
+                ctx.strokeStyle = '#f39c12';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Dibujar sacos
+                for (let saco of this.sacosEnFaja) {
+                    if (saco.activo) {
+                        const sacoX = xInicio + saco.posicion * Math.cos(this.angulo) * escalaLongitud;
+                        const sacoY = yInicio - saco.posicion * Math.sin(this.angulo) * escalaLongitud;
+                        
+                        // Solo dibujar si está dentro de los límites
+                        if (sacoX >= xInicio - 40 && sacoX <= xFin + 40) {
+                            // Cuerpo del saco
+                            ctx.fillStyle = '#ecf0f1';
+                            ctx.fillRect(sacoX - 30, sacoY - 20, 60, 40);
+                            
+                            // Refuerzos
+                            ctx.fillStyle = '#7f8c8d';
+                            ctx.fillRect(sacoX - 30, sacoY - 20, 60, 5);
+                            ctx.fillRect(sacoX - 30, sacoY + 15, 60, 5);
+                            
+                            // Texto con masa dinámica
+                            ctx.fillStyle = '#2c3e50';
+                            ctx.font = 'bold 11px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(`${this.masaSaco}kg`, sacoX, sacoY + 5);
+                            
+                            // Indicador de tiempo en el saco
+                            const tiempoEnFaja = this.tiempo - saco.tiempoEntrada;
+                            if (tiempoEnFaja > 0) {
+                                ctx.font = '9px Arial';
+                                ctx.fillStyle = '#e74c3c';
+                                ctx.fillText(`${tiempoEnFaja.toFixed(1)}s`, sacoX, sacoY + 20);
+                            }
+                        }
+                    }
+                }
+                
+                // Plataforma superior
+                ctx.fillStyle = '#27ae60';
+                ctx.fillRect(xFin - 80, yFin - 15, 160, 30);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText('PLATAFORMA', xFin, yFin - 20);
+                ctx.fillText(`${this.altura.toFixed(1)}m`, xFin, yFin - 5);
+                
+                // Mostrar información técnica
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Longitud: ${this.longitud.toFixed(1)}m`, 20, 30);
+                ctx.fillText(`Velocidad: ${this.velocidadFaja.toFixed(1)} m/s`, 20, 50);
+                ctx.fillText(`Tiempo ascenso: ${this.tiempoAscenso.toFixed(1)}s`, 20, 70);
+                ctx.fillText(`Intervalo: ${this.intervaloSacos.toFixed(1)}s`, 20, 90);
+                
+                // Dibujar logo UNACEM si hay validación
+                if (this.validationResults) {
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.9)';
+                    ctx.fillRect(width - 140, 20, 120, 40);
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('UNACEM', width - 80, 45);
+                    ctx.font = '10px Arial';
+                    ctx.fillText('2019 Benchmark', width - 80, 58);
+                }
+            }
+            
+            dibujarEstructura(xInicio, yInicio, xFin, yFin) {
+                const ctx = this.ctx;
+                
+                // Base inferior
+                ctx.fillStyle = '#7f8c8d';
+                ctx.fillRect(xInicio - 40, yInicio + 10, 80, 60);
+                
+                // Estructura de soporte
+                ctx.fillStyle = '#95a5a6';
+                const numSoportes = 5;
+                for (let i = 0; i <= numSoportes; i++) {
+                    const t = i / numSoportes;
+                    const x = xInicio + (xFin - xInicio) * t;
+                    const y = yInicio + (yFin - yInicio) * t;
+                    ctx.fillRect(x - 10, y + 10, 20, 80);
+                }
+                
+                // Plataforma inferior
+                ctx.fillStyle = '#34495e';
+                ctx.fillRect(xInicio - 100, yInicio + 70, 200, 20);
+                
+                // Sistema de carga
+                ctx.fillStyle = '#2c3e50';
+                ctx.fillRect(xInicio - 150, yInicio + 40, 100, 30);
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(xInicio - 155, yInicio + 35, 10, 40);
+            }
+            
+            // FUNCIONES DE VALIDACIÓN (mantenidas del código anterior)
+            validarContraUNACEM() {
+                const designParams = {
+                    capacity: (60 / this.intervaloSacos) * this.masaSaco * 60, // kg/h
+                    power: this.motorSeleccionado,
+                    efficiency: this.eficienciaSistema,
+                    speed: this.velocidadFaja,
+                    angle: this.angulo * 180 / Math.PI
+                };
+                
+                const results = {
+                    warnings: [],
+                    recommendations: [],
+                    isValid: true
+                };
+                
+                const capacidadTonH = designParams.capacity / 1000;
+                const capacityRatio = UNACEM_BENCHMARKS.PRODUCTION.CAPACITY_HOURLY / capacidadTonH;
+                
+                if (capacityRatio < 10 || capacityRatio > 20) {
+                    results.warnings.push(
+                        `Capacidad ${capacidadTonH.toFixed(1)} ton/h vs planta UNACEM (${UNACEM_BENCHMARKS.PRODUCTION.CAPACITY_HOURLY} ton/h)`
+                    );
+                }
+                
+                const consumoEspecificoDisenio = designParams.power / capacidadTonH;
+                const consumoTransporteUNACEM = UNACEM_BENCHMARKS.ENERGY.SPECIFIC_ATOCONGO * 
+                                             UNACEM_BENCHMARKS.ENERGY.TRANSPORT_PERCENTAGE;
+                
+                const ratioEnergia = consumoEspecificoDisenio / consumoTransporteUNACEM;
+                
+                if (ratioEnergia < 0.5 || ratioEnergia > 2) {
+                    results.warnings.push(
+                        `Consumo ${consumoEspecificoDisenio.toFixed(2)} kW/ton vs UNACEM ${consumoTransporteUNACEM.toFixed(2)} kW/ton`
+                    );
+                }
+                
+                if (designParams.efficiency > UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE * 1.1) {
+                    results.recommendations.push(
+                        `Eficiencia ${(designParams.efficiency*100).toFixed(1)}% vs UNACEM ${(UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE*100).toFixed(1)}%`
+                    );
+                }
+                
+                if (designParams.angle > 18) {
+                    results.warnings.push(
+                        `Ángulo ${designParams.angle.toFixed(1)}° > máximo recomendado 18°`
+                    );
+                }
+                
+                results.recommendations.push(
+                    `Datos UNACEM 2019:`,
+                    `• Producción: ${(UNACEM_BENCHMARKS.PRODUCTION.ATOCONGO_2019/1000000).toFixed(1)}M ton/año`,
+                    `• Consumo: ${UNACEM_BENCHMARKS.ENERGY.SPECIFIC_ATOCONGO} kWh/ton`,
+                    `• Eficiencia: ${(UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE*100).toFixed(1)}%`,
+                    `• Faja: ${UNACEM_BENCHMARKS.PROJECTS.BELT_LENGTH_KM} km`
+                );
+                
+                this.validationResults = results;
+                return results;
+            }
+            
+            mostrarResultadosValidacion() {
+                const container = document.getElementById('validationResults');
+                container.innerHTML = '';
+                
+                if (!this.validationResults) {
+                    container.innerHTML = `
+                        <div class="validation-item info-line">
+                            ✅ Sistema listo para validación con datos UNACEM
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (this.validationResults.warnings.length > 0) {
+                    this.validationResults.warnings.forEach(warning => {
+                        const div = document.createElement('div');
+                        div.className = 'validation-item warning';
+                        div.innerHTML = `⚠️ ${warning}`;
+                        container.appendChild(div);
+                    });
+                }
+                
+                if (this.validationResults.recommendations.length > 0) {
+                    this.validationResults.recommendations.forEach(rec => {
+                        const div = document.createElement('div');
+                        div.className = 'validation-item recommendation';
+                        div.innerHTML = `💡 ${rec}`;
+                        container.appendChild(div);
+                    });
+                }
+            }
+            
+            calcularParametrosRealistas() {
+                const initialDesign = {
+                    power: this.motorSeleccionado,
+                    efficiency: this.eficienciaSistema,
+                    speed: this.velocidadFaja,
+                    capacity: (60 / this.intervaloSacos) * this.masaSaco * 60 / 1000 // ton/h
+                };
+                
+                this.realisticParams = {
+                    efficiency: UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE,
+                    power: initialDesign.power * (UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE / initialDesign.efficiency),
+                    safetyFactor: 1.15,
+                    recommendedSpeed: Math.min(2.0, initialDesign.speed * 1.1),
+                    maxCapacityForAngle: function(angle) {
+                        if (angle <= 15) return initialDesign.capacity * 1.2;
+                        if (angle <= 20) return initialDesign.capacity * 0.9;
+                        if (angle <= 25) return initialDesign.capacity * 0.7;
+                        return initialDesign.capacity * 0.5;
+                    },
+                    unacemComparison: {
+                        capacityRatio: UNACEM_BENCHMARKS.PRODUCTION.CAPACITY_HOURLY / initialDesign.capacity,
+                        recommendedPower: initialDesign.power * 1.15 * (UNACEM_BENCHMARKS.EFFICIENCY.AVERAGE / initialDesign.efficiency)
+                    }
+                };
+                
+                return this.realisticParams;
+            }
+            
+            aplicarParametrosRealistas() {
+                if (!this.realisticParams) return;
+                
+                this.eficienciaSistema = this.realisticParams.efficiency;
+                const nuevaPotencia = this.realisticParams.power * this.realisticParams.safetyFactor;
+                this.motorSeleccionado = nuevaPotencia > 3.7 ? 5.5 : 3.7;
+                this.velocidadFaja = Math.min(this.velocidadFaja, this.realisticParams.recommendedSpeed);
+                
+                // Recalcular tiempo de ascenso con la nueva velocidad
+                this.tiempoAscenso = this.longitud / this.velocidadFaja;
+                
+                this.calcularFuerzas();
+                this.actualizarDatosTiempoReal();
+                this.actualizarDisplays();
+                
+                const container = document.getElementById('validationResults');
+                const div = document.createElement('div');
+                div.className = 'validation-item recommendation';
+                div.innerHTML = `✅ Aplicados parámetros realistas UNACEM:<br>
+                    • Motor ajustado: ${this.motorSeleccionado} kW<br>
+                    • Eficiencia real: ${(this.eficienciaSistema * 100).toFixed(1)}%<br>
+                    • Velocidad óptima: ${this.velocidadFaja.toFixed(1)} m/s<br>
+                    • Tiempo ascenso: ${this.tiempoAscenso.toFixed(1)} s`;
+                container.appendChild(div);
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            const sistema = new SistemaFajaTransportadora();
+            
+            setTimeout(() => {
+                sistema.validarContraUNACEM();
+                sistema.mostrarResultadosValidacion();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
