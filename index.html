@@ -233,6 +233,18 @@
             font-size: 1em;
         }
 
+        .value-display.error {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .value-display.warning {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+
+        .value-display.success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
         .motor-control-group {
             background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
             padding: 15px;
@@ -361,6 +373,41 @@
             font-size: 1.2em;
             font-weight: bold;
             color: #e74c3c;
+        }
+
+        /* ALERTAS Y MENSAJES */
+        .alert-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #d35400 100%);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
         }
 
         /* INFORMACIÓN DEL SISTEMA */
@@ -510,7 +557,7 @@
                                 <span style="color: #e74c3c">adim.</span>
                             </div>
                             <input type="range" id="frictionSlider" min="0.3" max="0.7" value="0.5" step="0.05">
-                            <div class="value-display" id="frictionValue">0.5 (FAJA TEXTURIZADA)</div>
+                            <div class="value-display success" id="frictionValue">0.5 (FAJA TEXTURIZADA)</div>
                         </div>
 
                         <!-- Intervalo entre Sacos -->
@@ -548,7 +595,7 @@
                             <div class="data-value" id="bagsValue">0</div>
                         </div>
                         <div class="data-item">
-                            <div class="data-label">Cemento Transportado</div>
+                            <div class="data-label">Material Transportado</div>
                             <div class="data-value" id="cementValue">0.0 kg</div>
                         </div>
                         <div class="data-item">
@@ -754,9 +801,6 @@
                 this.velocidadFaja = 1.5; // m/s - velocidad fija del motor
                 this.intervaloSacos = 6; // segundos - intervalo fijo entre sacos
                 
-                // Verificar que las especificaciones sean consistentes
-                this.verificarConsistencia();
-                
                 // Parámetros variables
                 this.masaSaco = 50; // kg - estándar industrial
                 this.coeficienteFriccion = 0.5; // faja texturizada
@@ -782,14 +826,149 @@
                 this.ultimoSacoTiempo = -this.intervaloSacos; // Para que el primer saco aparezca en t=0
                 this.proximoIdSaco = 1;
                 
+                // Validaciones
+                this.errores = [];
+                this.validacionCompletada = false;
+                
                 // Análisis de datos
                 this.analysisResults = null;
                 
                 // Inicializar sistema
+                this.validarParametrosIniciales();
                 this.calcularFuerzas();
                 this.crearSacosIniciales();
                 this.inicializarControles();
                 this.dibujarEscena();
+            }
+            
+            mostrarAlerta(mensaje, tipo = 'error') {
+                // Eliminar alertas existentes
+                const alertasExistentes = document.querySelectorAll('.alert-message');
+                alertasExistentes.forEach(alerta => alerta.remove());
+                
+                // Crear nueva alerta
+                const alerta = document.createElement('div');
+                alerta.className = `alert-message ${tipo === 'warning' ? 'alert-warning' : tipo === 'success' ? 'alert-success' : ''}`;
+                alerta.innerHTML = mensaje;
+                
+                // Agregar al documento
+                document.body.appendChild(alerta);
+                
+                // Remover después de 5 segundos
+                setTimeout(() => {
+                    if (alerta.parentNode) {
+                        alerta.remove();
+                    }
+                }, 5000);
+            }
+            
+            validarParametrosIniciales() {
+                this.errores = [];
+                
+                // Validar fricción mínima
+                if (this.coeficienteFriccion < 0.4) {
+                    this.errores.push({
+                        tipo: 'error',
+                        mensaje: `ERROR: Coeficiente de fricción (μ=${this.coeficienteFriccion}) menor al mínimo permitido (0.4). Rango no permitido.`,
+                        parametro: 'friction'
+                    });
+                }
+                
+                // Validar ángulo máximo
+                if (this.angulo * 180 / Math.PI > 22) {
+                    this.errores.push({
+                        tipo: 'warning',
+                        mensaje: `ADVERTENCIA: Ángulo (${(this.angulo * 180 / Math.PI).toFixed(1)}°) mayor al recomendado (22° máximo).`,
+                        parametro: 'angle'
+                    });
+                }
+                
+                // Validar velocidad máxima
+                if (this.velocidadFaja > 2.0) {
+                    this.errores.push({
+                        tipo: 'warning',
+                        mensaje: `ADVERTENCIA: Velocidad (${this.velocidadFaja} m/s) mayor a la recomendada para manipulación cuidadosa.`,
+                        parametro: 'speed'
+                    });
+                }
+                
+                // Validar masa máxima
+                if (this.masaSaco > 80) {
+                    this.errores.push({
+                        tipo: 'warning',
+                        mensaje: `ADVERTENCIA: Masa del saco (${this.masaSaco} kg) mayor al límite recomendado (80 kg).`,
+                        parametro: 'mass'
+                    });
+                }
+                
+                // Mostrar errores críticos
+                this.errores.forEach(error => {
+                    if (error.tipo === 'error') {
+                        this.mostrarAlerta(error.mensaje, 'error');
+                    } else if (error.tipo === 'warning') {
+                        this.mostrarAlerta(error.mensaje, 'warning');
+                    }
+                });
+                
+                return this.errores.length === 0;
+            }
+            
+            validarEjecucion() {
+                // Validar fricción antes de ejecutar
+                if (this.coeficienteFriccion < 0.4) {
+                    this.mostrarAlerta(`ERROR CRÍTICO: Coeficiente de fricción (μ=${this.coeficienteFriccion}) menor al mínimo permitido (0.4). La simulación no puede iniciar.`, 'error');
+                    return false;
+                }
+                
+                // Validar margen de seguridad mínimo
+                const margen = parseFloat(this.margenSeguridad);
+                if (margen < 10) {
+                    this.mostrarAlerta(`ADVERTENCIA: Margen de seguridad crítico (${margen}%). Riesgo alto de deslizamiento.`, 'warning');
+                    // Aún permitimos la ejecución pero con advertencia
+                } else if (margen < 20) {
+                    this.mostrarAlerta(`PRECAUCIÓN: Margen de seguridad bajo (${margen}%).`, 'warning');
+                }
+                
+                return true;
+            }
+            
+            actualizarValidacionVisual() {
+                const frictionDisplay = document.getElementById('frictionValue');
+                
+                // Actualizar color según valor de fricción
+                if (this.coeficienteFriccion < 0.4) {
+                    frictionDisplay.className = 'value-display error';
+                    frictionDisplay.innerHTML = `${this.coeficienteFriccion.toFixed(2)} (❌ MÍNIMO: 0.4)`;
+                } else if (this.coeficienteFriccion < 0.45) {
+                    frictionDisplay.className = 'value-display warning';
+                    frictionDisplay.innerHTML = `${this.coeficienteFriccion.toFixed(2)} (⚠️ LÍMITE MÍNIMO)`;
+                } else {
+                    frictionDisplay.className = 'value-display success';
+                    frictionDisplay.innerHTML = `${this.coeficienteFriccion.toFixed(2)} (FAJA TEXTURIZADA)`;
+                }
+                
+                // Actualizar otros displays según validaciones
+                const angleDisplay = document.getElementById('angleValue');
+                const angleDegrees = this.angulo * 180 / Math.PI;
+                if (angleDegrees > 22) {
+                    angleDisplay.className = 'value-display warning';
+                } else {
+                    angleDisplay.className = 'value-display';
+                }
+                
+                const speedDisplay = document.getElementById('speedValue');
+                if (this.velocidadFaja > 2.0) {
+                    speedDisplay.className = 'value-display warning';
+                } else {
+                    speedDisplay.className = 'value-display';
+                }
+                
+                const massDisplay = document.getElementById('massValue');
+                if (this.masaSaco > 80) {
+                    massDisplay.className = 'value-display warning';
+                } else {
+                    massDisplay.className = 'value-display';
+                }
             }
             
             verificarConsistencia() {
@@ -797,27 +976,18 @@
                 const alturaCalculada = this.longitud * Math.sin(this.angulo);
                 const tiempoCalculado = this.longitud / this.velocidadFaja;
                 
-                console.log("Verificación de consistencia:");
-                console.log(`- Altura especificada: ${this.altura} m`);
-                console.log(`- Altura calculada desde longitud y ángulo: ${alturaCalculada.toFixed(2)} m`);
-                console.log(`- Tiempo ascenso especificado: 17.3 s`);
-                console.log(`- Tiempo ascenso calculado: ${tiempoCalculado.toFixed(2)} s`);
-                
                 // Ajustar parámetros para que sean consistentes
                 if (Math.abs(alturaCalculada - this.altura) > 0.1) {
                     // Recalcular ángulo para que sea consistente
                     this.angulo = Math.asin(this.altura / this.longitud);
-                    console.log(`Ángulo ajustado a: ${(this.angulo * 180 / Math.PI).toFixed(1)}°`);
                 }
                 
                 if (Math.abs(tiempoCalculado - 17.3) > 0.1) {
                     // Ajustar velocidad para que el tiempo sea exactamente 17.3s
                     this.velocidadFaja = this.longitud / 17.3;
-                    console.log(`Velocidad ajustada a: ${this.velocidadFaja.toFixed(2)} m/s`);
                 }
                 
                 this.tiempoAscenso = this.longitud / this.velocidadFaja;
-                console.log(`Tiempo final de ascenso: ${this.tiempoAscenso.toFixed(2)} s`);
             }
             
             calcularFuerzas() {
@@ -867,6 +1037,7 @@
                 this.sacosPorMinuto = 60 / this.intervaloSacos;
                 
                 this.actualizarDisplays();
+                this.actualizarValidacionVisual();
             }
             
             inicializarControles() {
@@ -877,7 +1048,7 @@
                         `${this.masaSaco} kg (ESTÁNDAR INDUSTRIAL)`;
                     this.masaTotal = this.masaSaco * this.sacosSimultaneos;
                     this.calcularFuerzas();
-                    this.actualizarDisplays();
+                    this.actualizarValidacionVisual();
                 });
                 
                 document.getElementById('angleSlider').addEventListener('input', (e) => {
@@ -895,14 +1066,23 @@
                     this.masaTotal = this.masaSaco * this.sacosSimultaneos;
                     
                     this.calcularFuerzas();
-                    this.actualizarDisplays();
+                    this.actualizarValidacionVisual();
                 });
                 
                 document.getElementById('frictionSlider').addEventListener('input', (e) => {
-                    this.coeficienteFriccion = parseFloat(e.target.value);
-                    document.getElementById('frictionValue').textContent = 
-                        `${this.coeficienteFriccion.toFixed(2)} (FAJA TEXTURIZADA)`;
+                    const nuevoValor = parseFloat(e.target.value);
+                    
+                    // Validación en tiempo real
+                    if (nuevoValor < 0.4) {
+                        this.mostrarAlerta(`ERROR: Coeficiente de fricción (μ=${nuevoValor.toFixed(2)}) menor al mínimo permitido (0.4)`, 'error');
+                        // No actualizar el valor si es inválido
+                        e.target.value = this.coeficienteFriccion;
+                        return;
+                    }
+                    
+                    this.coeficienteFriccion = nuevoValor;
                     this.calcularFuerzas();
+                    this.actualizarValidacionVisual();
                 });
                 
                 document.getElementById('intervalSlider').addEventListener('input', (e) => {
@@ -935,11 +1115,15 @@
                     this.masaTotal = this.masaSaco * this.sacosSimultaneos;
                     
                     this.calcularFuerzas();
-                    this.actualizarDisplays();
+                    this.actualizarValidacionVisual();
                 });
                 
                 // Botones
-                document.getElementById('startBtn').addEventListener('click', () => this.iniciarProduccion());
+                document.getElementById('startBtn').addEventListener('click', () => {
+                    if (this.validarEjecucion()) {
+                        this.iniciarProduccion();
+                    }
+                });
                 document.getElementById('resetBtn').addEventListener('click', () => this.reiniciarSistema());
                 document.getElementById('emergencyBtn').addEventListener('click', () => this.paradaEmergencia());
                 document.getElementById('validateBtn').addEventListener('click', () => {
@@ -1025,6 +1209,12 @@
             }
             
             agregarSaco() {
+                // Validar antes de agregar saco
+                if (this.coeficienteFriccion < 0.4) {
+                    this.mostrarAlerta("ERROR: No se puede agregar saco. Coeficiente de fricción insuficiente.", 'error');
+                    return;
+                }
+                
                 // Buscar un saco inactivo para reutilizar
                 let sacoReutilizable = this.sacosEnFaja.find(s => !s.activo);
                 
@@ -1050,16 +1240,24 @@
             }
             
             iniciarProduccion() {
+                // Validación final antes de iniciar
+                if (this.coeficienteFriccion < 0.4) {
+                    this.mostrarAlerta(`ERROR CRÍTICO: Coeficiente de fricción (μ=${this.coeficienteFriccion}) menor al mínimo permitido (0.4). La simulación no puede iniciar.`, 'error');
+                    return;
+                }
+                
                 if (!this.simulacionActiva) {
                     this.simulacionActiva = true;
                     this.bucleAnimacion();
                     document.getElementById('startBtn').innerHTML = '<span>⏸</span> PAUSAR SIMULACIÓN';
+                    this.mostrarAlerta("✅ Simulación iniciada correctamente", 'success');
                 } else {
                     this.simulacionActiva = false;
                     document.getElementById('startBtn').innerHTML = '<span>▶</span> REANUDAR SIMULACIÓN';
                     if (this.animationId) {
                         cancelAnimationFrame(this.animationId);
                     }
+                    this.mostrarAlerta("⏸ Simulación pausada", 'warning');
                 }
             }
             
@@ -1078,6 +1276,8 @@
                 if (this.animationId) {
                     cancelAnimationFrame(this.animationId);
                 }
+                
+                this.mostrarAlerta("🔄 Sistema reiniciado", 'success');
             }
             
             paradaEmergencia() {
@@ -1095,12 +1295,21 @@
                 this.ctx.fillText('⛔ PARADA DE EMERGENCIA', this.canvas.width/2, this.canvas.height/2);
                 this.ctx.font = '24px Arial';
                 this.ctx.fillText('Sistema detenido por seguridad', this.canvas.width/2, this.canvas.height/2 + 50);
+                
+                this.mostrarAlerta("⛔ Parada de emergencia activada", 'error');
             }
             
             bucleAnimacion() {
                 if (!this.simulacionActiva) return;
                 
                 const dt = 0.016; // 60 FPS
+                
+                // Validación continua durante la simulación
+                if (this.coeficienteFriccion < 0.4) {
+                    this.mostrarAlerta("ERROR: Coeficiente de fricción crítico. Deteniendo simulación...", 'error');
+                    this.paradaEmergencia();
+                    return;
+                }
                 
                 // Actualizar tiempo
                 this.tiempo += dt;
@@ -1155,6 +1364,20 @@
                 gradient.addColorStop(1, '#16213e');
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, width, height);
+                
+                // Mostrar advertencia si la fricción es baja
+                if (this.coeficienteFriccion < 0.4) {
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.7)';
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 36px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('⚠️ ERROR: FRICCIÓN INSUFICIENTE', width/2, height/2 - 30);
+                    ctx.font = '24px Arial';
+                    ctx.fillText(`μ = ${this.coeficienteFriccion.toFixed(2)} (MÍNIMO: 0.4)`, width/2, height/2 + 20);
+                    ctx.fillText('Ajuste el coeficiente de fricción para continuar', width/2, height/2 + 60);
+                    return;
+                }
                 
                 // Parámetros de dibujo
                 const baseY = height * 0.7;
@@ -1273,6 +1496,16 @@
                 // Mostrar número de sacos activos
                 const sacosActivos = this.sacosEnFaja.filter(s => s.activo).length;
                 ctx.fillText(`Sacos activos: ${sacosActivos}`, 20, 110);
+                
+                // Mostrar estado de validación
+                if (this.coeficienteFriccion < 0.45) {
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('⚠️ FRICCIÓN BAJA', width/2, height - 50);
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`μ = ${this.coeficienteFriccion.toFixed(2)} (Mínimo recomendado: 0.45)`, width/2, height - 30);
+                }
             }
             
             dibujarEstructura(xInicio, yInicio, xFin, yFin) {
@@ -1313,7 +1546,8 @@
                     energiaPotencial: this.energiaPotencial.toFixed(2),
                     trabajo: this.trabajoPorCiclo.toFixed(1),
                     eficiencia: this.eficienciaEnergetica.toFixed(1),
-                    margenSeguridad: this.margenSeguridad
+                    margenSeguridad: this.margenSeguridad,
+                    friccion: this.coeficienteFriccion.toFixed(2)
                 };
                 
                 this.analysisResults = {
@@ -1322,32 +1556,65 @@
                     recomendaciones: []
                 };
                 
+                // Validación crítica de fricción
+                if (this.coeficienteFriccion < 0.4) {
+                    this.analysisResults.observaciones.push("❌ ERROR CRÍTICO: Coeficiente de fricción insuficiente");
+                    this.analysisResults.recomendaciones.push("Aumentar coeficiente de fricción a mínimo 0.4");
+                }
+                
                 // Análisis de seguridad
-                if (parseFloat(this.margenSeguridad) < 20) {
-                    this.analysisResults.observaciones.push("MARGEN DE SEGURIDAD CRÍTICO: Riesgo de deslizamiento");
+                if (parseFloat(this.margenSeguridad) < 10) {
+                    this.analysisResults.observaciones.push("❌ MARGEN DE SEGURIDAD CRÍTICO: Riesgo alto de deslizamiento");
                     this.analysisResults.recomendaciones.push("Aumentar coeficiente de fricción o reducir ángulo de inclinación");
-                } else if (parseFloat(this.margenSeguridad) < 40) {
-                    this.analysisResults.observaciones.push("Margen de seguridad bajo");
+                } else if (parseFloat(this.margenSeguridad) < 20) {
+                    this.analysisResults.observaciones.push("⚠️ Margen de seguridad bajo");
                     this.analysisResults.recomendaciones.push("Considerar aumentar el coeficiente de fricción");
+                } else if (parseFloat(this.margenSeguridad) < 30) {
+                    this.analysisResults.observaciones.push("⚠️ Margen de seguridad moderado");
                 } else {
-                    this.analysisResults.observaciones.push("Margen de seguridad adecuado");
+                    this.analysisResults.observaciones.push("✅ Margen de seguridad adecuado");
                 }
                 
                 // Análisis de potencia
                 if (this.factorServicio < 1.15) {
-                    this.analysisResults.observaciones.push("Factor de servicio muy bajo: Motor sobredimensionado");
+                    this.analysisResults.observaciones.push("⚠️ Factor de servicio muy bajo: Motor sobredimensionado");
                     this.analysisResults.recomendaciones.push("Considerar un motor de menor potencia");
                 } else if (this.factorServicio > 1.5) {
-                    this.analysisResults.observaciones.push("Factor de servicio alto: Motor trabajando cerca del límite");
+                    this.analysisResults.observaciones.push("⚠️ Factor de servicio alto: Motor trabajando cerca del límite");
                     this.analysisResults.recomendaciones.push("Considerar un motor de mayor potencia");
+                } else {
+                    this.analysisResults.observaciones.push("✅ Factor de servicio dentro de rango óptimo");
+                }
+                
+                // Análisis de ángulo
+                const angleDegrees = this.angulo * 180 / Math.PI;
+                if (angleDegrees > 22) {
+                    this.analysisResults.observaciones.push("⚠️ Ángulo de inclinación excesivo");
+                    this.analysisResults.recomendaciones.push("Reducir ángulo a máximo 22°");
+                } else if (angleDegrees > 18) {
+                    this.analysisResults.observaciones.push("⚠️ Ángulo en límite superior recomendado");
+                }
+                
+                // Análisis de velocidad
+                if (this.velocidadFaja > 2.0) {
+                    this.analysisResults.observaciones.push("⚠️ Velocidad excesiva para manipulación cuidadosa");
+                    this.analysisResults.recomendaciones.push("Reducir velocidad a máximo 2.0 m/s");
+                }
+                
+                // Análisis de masa
+                if (this.masaSaco > 80) {
+                    this.analysisResults.observaciones.push("⚠️ Masa del saco excede límite recomendado");
+                    this.analysisResults.recomendaciones.push("Reducir masa a máximo 80 kg");
                 }
                 
                 // Análisis de eficiencia
                 if (this.eficienciaEnergetica < 70) {
-                    this.analysisResults.observaciones.push("Eficiencia energética baja");
+                    this.analysisResults.observaciones.push("⚠️ Eficiencia energética baja");
                     this.analysisResults.recomendaciones.push("Revisar pérdidas por fricción y diseño del sistema");
-                } else if (this.eficienciaEnergetica > 90) {
-                    this.analysisResults.observaciones.push("Eficiencia energética excelente");
+                } else if (this.eficienciaEnergetica > 85) {
+                    this.analysisResults.observaciones.push("✅ Eficiencia energética excelente");
+                } else {
+                    this.analysisResults.observaciones.push("✅ Eficiencia energética aceptable");
                 }
                 
                 return this.analysisResults;
@@ -1356,6 +1623,9 @@
             mostrarResultadosAnalisis() {
                 const container = document.getElementById('analysisResults');
                 container.innerHTML = '';
+                
+                // Realizar análisis
+                this.analizarDatos();
                 
                 if (!this.analysisResults) {
                     container.innerHTML = `
@@ -1375,6 +1645,7 @@
                     • Potencia motor: ${this.analysisResults.datos.potenciaMotor} kW<br>
                     • Tiempo ascenso: ${this.analysisResults.datos.tiempoAscenso} s<br>
                     • Capacidad: ${this.analysisResults.datos.capacidad} sacos/min<br>
+                    • Fricción: μ = ${this.analysisResults.datos.friccion}<br>
                     • Eficiencia energética: ${this.analysisResults.datos.eficiencia}%
                 `;
                 container.appendChild(datosDiv);
@@ -1383,8 +1654,10 @@
                 if (this.analysisResults.observaciones.length > 0) {
                     this.analysisResults.observaciones.forEach(obs => {
                         const div = document.createElement('div');
-                        div.className = 'validation-item warning';
-                        div.innerHTML = `⚠️ ${obs}`;
+                        const esError = obs.includes('❌') || obs.includes('ERROR');
+                        const esAdvertencia = obs.includes('⚠️');
+                        div.className = `validation-item ${esError ? 'warning' : esAdvertencia ? 'warning' : 'recommendation'}`;
+                        div.innerHTML = obs;
                         container.appendChild(div);
                     });
                 }
@@ -1400,9 +1673,20 @@
                 }
                 
                 // Resumen de análisis
+                const tieneErroresCriticos = this.coeficienteFriccion < 0.4 || parseFloat(this.margenSeguridad) < 10;
+                const tieneAdvertencias = this.analysisResults.observaciones.some(obs => obs.includes('⚠️'));
+                
                 const summaryDiv = document.createElement('div');
-                summaryDiv.className = 'validation-item recommendation';
-                summaryDiv.innerHTML = '✅ Análisis completado - Sistema operando dentro de parámetros';
+                if (tieneErroresCriticos) {
+                    summaryDiv.className = 'validation-item warning';
+                    summaryDiv.innerHTML = '❌ SISTEMA CON ERRORES CRÍTICOS - NO OPERATIVO';
+                } else if (tieneAdvertencias) {
+                    summaryDiv.className = 'validation-item warning';
+                    summaryDiv.innerHTML = '⚠️ SISTEMA CON ADVERTENCIAS - REVISAR PARÁMETROS';
+                } else {
+                    summaryDiv.className = 'validation-item recommendation';
+                    summaryDiv.innerHTML = '✅ SISTEMA OPERANDO DENTRO DE PARÁMETROS ADECUADOS';
+                }
                 container.appendChild(summaryDiv);
                 
                 // Scroll al final
